@@ -1,0 +1,2180 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Chess</title>
+  <meta name="description" content="Chess">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<style>
+    html {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+   }
+    body {
+        background-color: grey;
+   }
+    .boardFrame {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+   }
+    .board {
+        width: 400px;
+        height: 400px;
+        background-color: green;
+        display: flex;
+        flex-direction: column;
+   }
+    .frameDiv {
+        display: flex;
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+   }
+    .row {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+   }
+    .cell {
+		position: relative;
+        display: flex;
+        flex: 1;
+        text-align: center;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 50px;
+        width: 50px;
+   }
+    .cell.light {
+        background-color: burlywood;
+   }
+    .cell.dark {
+        background-color: darkgoldenrod;
+   }
+    .cell.selected {
+        background-color: cornflowerblue;
+   }
+    .cell.legalMove {
+        opacity: 0.5;
+        cursor: pointer;
+   }
+    .cell.inCheck {
+        background-color: crimson;
+   }
+   .cell.editQueenAddable:hover {
+        opacity: 0.5;
+	   cursor: pointer;
+   }
+   .cell.editMovable:hover {
+   		background-color: cornflowerblue;
+	   cursor: pointer;
+   }
+   .cell.editMoveTarget:hover {
+       opacity: 0.5;
+       cursor: pointer;
+   }
+   .cell.editRemovable:hover {
+       background-color: crimson;
+	   cursor: pointer;
+   }
+   .cellHighlight {
+       position: absolute;
+       top: 0px;
+       bottom: 0px;
+       left: 0px;
+       right: 0px;
+       z-index: 100;
+   }
+    .piece {
+        font-size: 40px;
+        z-index: 1000;
+        cursor: pointer;
+   }
+    .piece.light {
+        color: white;
+   }
+    .piece.dark {
+        color: black;
+   }
+    .rightPanelContainer {
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        bottom: 0px;
+        width: 0px;
+   }
+    .rightPanel {
+        position: absolute;
+        left: 0px;
+        width: 40px;
+        top: 0px;
+        bottom: 0px;
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+   }
+   .button {
+	   position: relative;
+       display: flex;
+       flex-direction: column;
+       text-align: center;
+       justify-content: center;
+       width: 25px;
+       height: 25px;	
+       border-radius: 2px;
+       font-size: 25px;
+       background-color: goldenrod;
+       color: black;
+       cursor: pointer;
+   }
+   .button.selected {
+       background-color: firebrick;
+  	}
+    .darkPlayTurnButton {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+		font-size: initial;
+   }
+   .darkPlayTurnButton span {
+	    position: relative;
+	    top: 1px;
+	    left: 1px;
+	}
+    .darkAutoPlayTurnButton {
+        position: absolute;
+        top: 30px;
+        right: 0px;
+   }
+    .darkAutoPlayTurnButton > span {
+        position: relative;
+   }
+    .darkAutoPlayTurnButton.selected {
+        background-color: firebrick;
+   }
+    .lightAutoPlayTurnButton {
+        position: absolute;
+        bottom: 30px;
+        right: 0px;
+   }
+    .lightAutoPlayTurnButton > span {
+        position: relative;
+   }
+    .lightAutoPlayTurnButton.selected {
+        background-color: firebrick;
+   }
+    .lightPlayTurnButton {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+		font-size: initial;
+   }
+   .lightPlayTurnButton span {
+	    position: relative;
+	    top: 1px;
+	    left: 1px;
+	}
+	.buttonHighlight {
+		display: none;
+	    position: absolute;
+	    top: 0px;
+	    bottom: 0px;
+	    left: 0px;
+	    right: 0px;
+	    border: 2px solid firebrick;
+	    border-radius: 2px;
+	}
+	.playTurnButton.highlight .buttonHighlight {
+	    display: block;
+	}
+   .editBoardPaneContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    align-items: center;
+   }	   
+   .openEditModeButton {
+       display: none; /* flex */
+       font-size: 20px;
+   }
+   .editBoardPaneContainer.collapsed .openEditModeButton {
+   	   display: flex;
+   }
+   .openEditModeButton span {
+       position: relative;
+       top: 1px;
+       left: 0px;
+   }
+   .editBoardPane {
+       display: none; /* flex */
+       flex-direction: column;
+       flex: 1;
+       background-color: silver;
+       border-radius: 2px;
+       position: relative;
+       right: -2px;
+   }
+   .editBoardPaneContainer.expanded .editBoardPane {
+   	   display: flex;
+   }
+   .editBoardPane .button {
+       margin: 2px;
+   }
+   .button.pieceMoveButton {
+       font-size: 20px;
+   }
+   .button.pieceMoveButton span {
+       position: relative;
+       top: 1px;
+       left: 0px;
+   }
+   .button.pieceDeleteButton span {
+       position: relative;
+   }
+   .button.closeEditModeButton span {
+       font-size: 35px;
+   }
+    
+   .button.pieceMoveButton span.horizontalArrows {
+       position: relative;
+       top: 12px;
+   }
+   .button.pieceMoveButton span.verticalArrows {
+       position: relative;
+       top: -13px;
+   }
+
+</style>
+<script type="text/javascript">
+	
+	UI = {
+		initializeUiEventHandlers: function() {
+			UI.initializeVolatileUiEventHandlers();
+		
+			$(".lightPlayTurnButton").on("click", function() {
+				UI.updateForSidesTurn(Side.Light);
+				Computation.makeComputedMove(Side.Light);
+			});
+		
+			$(".darkPlayTurnButton").on("click", function() {
+				UI.updateForSidesTurn(Side.Dark);
+				Computation.makeComputedMove(Side.Dark);
+			});
+		
+			$(".darkAutoPlayTurnButton").on("click", function() {
+				var wasSelected = $(this).hasClass("selected");
+				if (wasSelected) {
+					Control.Dark.shouldRespondeAutomatically = false;
+					$(this).removeClass("selected");
+				} else {
+					Control.Dark.shouldRespondeAutomatically = true;
+					$(this).addClass("selected");
+				}
+			});
+		
+			$(".lightAutoPlayTurnButton").on("click", function() {
+				var wasSelected = $(this).hasClass("selected");
+				if (wasSelected) {
+					Control.Light.shouldRespondeAutomatically = false;
+					$(this).removeClass("selected");
+				} else {
+					Control.Light.shouldRespondeAutomatically = true;
+					$(this).addClass("selected");
+				}
+			});
+			
+			$(".openEditModeButton").on("click", function() {
+				$(".editBoardPane .button").removeClass("selected");
+				$(".editBoardPaneContainer").removeClass("collapsed");
+				$(".editBoardPaneContainer").addClass("expanded");
+				
+				UI.clearBoardEditClassesAndEventHandlers();
+			});
+			
+			$(".closeEditModeButton").on("click", function() {
+				$(".editBoardPane .button").removeClass("selected");
+				$(".editBoardPaneContainer").removeClass("expanded");
+				$(".editBoardPaneContainer").addClass("collapsed");
+				
+				UI.clearBoardEditClassesAndEventHandlers();
+				UI.initializeVolatileUiEventHandlers();
+			});
+			
+			$(".editBoardPane .button").on("click", function() {
+				$(".editBoardPane .button").removeClass("selected");
+				$(this).addClass("selected");
+			});
+			
+			$(".queenAddButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editQueenAddable");
+				
+				$(".cell.editQueenAddable").on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass("editQueenAddable");
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var newQueen = new Queen(Side.Light, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newQueen, square);
+				});
+			});
+			
+			$(".pieceMoveButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").has(".piece").addClass("editMovable");
+				
+				UI.initializeBoardEditMovableCellClickEventHandlers();
+			});
+			
+			$(".pieceDeleteButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").has(".piece").addClass("editRemovable");
+				$(".cell.editRemovable").on("click", function() {
+					var cell = $(this);
+					cell.off("click");
+					cell.removeClass("editRemovable");
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					Control.BoardEdit.removePieceAtSquare(square);
+				});
+			});
+		},
+	
+		initializeVolatileUiEventHandlers: function() {
+			$(".piece").off("click").on("click", function() {
+				var cell = $(this).closest(".cell");
+			
+				if (cell.hasClass("legalMove")) {
+					return;
+				}
+			
+				UI.resetAllCells();
+			
+				var square = cell.attr("data-column") + cell.attr("data-row");
+				var piece = State.currentState.board.pieceAt(square);
+				var legalMoves = piece.getLegalMoves();
+			
+				cell.addClass("selected");
+			
+				for (var i = 0; i < legalMoves.length; i++) {
+					var targetSquare = legalMoves[i];
+					var targetCell = UI.getCellElement(targetSquare);
+					targetCell.addClass("legalMove");
+				}
+			
+				$(".cell.legalMove").on("click", function() {
+					var toCell = $(this);
+					var toSquare = toCell.attr("data-column") + toCell.attr("data-row");
+			
+					var fromCell = $(".cell.selected");
+					var fromSquare = fromCell.attr("data-column") + fromCell.attr("data-row");
+				
+					var piece = State.currentState.board.pieceAt(fromSquare);
+				
+					Control.movePiece(piece, toSquare);
+				
+					Computation.currentProjection = null;
+				});
+			});
+		},
+		
+		initializeBoardEditMovableCellClickEventHandlers: function() {
+			$(".cell.editMovable").off("click").on("click", function() {
+				var cell = $(this);
+				
+				$(".cell").removeClass("selected");
+				cell.addClass("selected");
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editMoveTarget");
+				
+				$(".cell").off("click");
+				UI.initializeBoardEditMovableCellClickEventHandlers();
+				
+				$(".cell.editMoveTarget").on("click", function() {
+					var targetCell = $(this);
+					
+					cell.off("click");
+					targetCell.off("click");
+					cell.removeClass("editMovable");
+					cell.removeClass("selected");
+					targetCell.removeClass("editMoveTarget");
+					targetCell.addClass("editMovable");
+					
+					var fromSquare = cell.attr("data-column") + cell.attr("data-row");
+					var toSquare = targetCell.attr("data-column") + targetCell.attr("data-row");
+					
+					Control.BoardEdit.movePiece(fromSquare, toSquare);
+					
+					UI.initializeBoardEditMovableCellClickEventHandlers();
+				});
+			});
+		},	
+		
+		clearBoardEditClassesAndEventHandlers: function() {
+			UI.disableVolatileUiEventHandlers();
+			UI.resetAllCells();
+		},
+		
+		disableVolatileUiEventHandlers: function() {
+			$(".cell").off("click");
+			$(".piece").off("click");
+		},
+		
+		resetAllCells: function() {
+			$(".cell.legalMove").off("click");
+			$(".cell.selected").removeClass("selected");
+			$(".cell.legalMove").removeClass("legalMove");
+			$(".cell.editMovable").removeClass("editMovable");
+			$(".cell.editMoveTarget").removeClass("editMoveTarget");
+			$(".cell.editRemovable").removeClass("editRemovable");
+		},
+		
+		getCellElement: function(square) {
+			var column = square[0];
+			var row = square[1];
+			return $(".cell[data-column=" + column + "][data-row=" + row + "]");
+		},
+	
+		movePieceElement: function(fromSquare, toSquare) {
+			$(".cell.inCheck").removeClass("inCheck");
+		
+			var fromCell = UI.getCellElement(fromSquare);
+			var toCell = UI.getCellElement(toSquare);
+		
+			var piece = fromCell.find(".piece");
+			fromCell.remove(piece);
+			toCell.find(".piece").remove();
+			toCell.append(piece);
+		},
+	
+		replacePieceElement: function(square, newPiece) {
+			var cell = UI.getCellElement(square);
+			cell.find(".piece").remove();
+		
+			var newPieceElement = UI.createPieceElement(newPiece);
+			cell.append(newPieceElement);
+		
+			UI.initializeVolatileUiEventHandlers();
+		},
+	
+		addPieceElement: function(square, newPiece) {
+			UI.replacePieceElement(square, newPiece);
+		},
+	
+		removePieceElement: function(square) {
+			var cell = UI.getCellElement(square);
+			cell.find(".piece").remove();
+		},
+	
+		createPieceElement: function(newPiece) {
+			var newPieceElement = $("<div></div>");
+		
+			var spanElement = $("<span></span>");
+			newPieceElement.append(spanElement);
+		
+			newPieceElement.addClass("piece");
+			newPieceElement.addClass(newPiece.side.name.toLowerCase());
+			newPieceElement.addClass(newPiece.constructor.name.toLowerCase());
+		
+			if (newPiece instanceof Queen) {
+				spanElement.html("&#9819;");
+			} else if (newPiece instanceof Rook) {
+				spanElement.html("&#9820;");
+			} else if (newPiece instanceof Bishop) {
+				spanElement.html("&#9821;");
+			} else if (newPiece instanceof Knight) {
+				spanElement.html("&#9822;");
+			}
+		
+			return newPieceElement;
+		},
+	
+		specialUpdateAllPieceElements: function(board) {
+			for (var column = 0; column <= 7; column++) {
+				for (var row = 0; row <= 7; row++) {
+					var square = Position.fromPoint(column, row).square;
+					var cellElement = UI.getCellElement(square);
+					var pieceElement = cellElement.find(".piece");
+					var piece = board.pieceAt(square);
+				
+					if (piece == null && pieceElement.length > 0) { // Should be empty but is not.
+						UI.removePieceElement(square)
+					} else if (pieceElement.length > 0 && (!pieceElement.hasClass(piece.constructor.name.toLowerCase()) || !pieceElement.hasClass(piece.side.name.toLowerCase()))) { // Has wrong piece.
+						UI.replacePieceElement(square, piece) 
+					} else if (pieceElement.length == 0 && piece != null) { // Is empty but should not be.
+						UI.addPieceElement(square, piece)
+					}
+				}
+			}
+		},
+		
+		updateForSidesTurn: function(side) {
+			$(".playTurnButton").removeClass("highlight");
+			if (side == Side.Light) {
+				$(".lightPlayTurnButton").addClass("highlight");
+			} else if (side == Side.Dark) {
+				$(".darkPlayTurnButton").addClass("highlight");
+			} 
+		}
+	};
+	
+	
+	/************************* Control **************************/
+	
+	$(document).ready(function() {
+	    Control.initialize();
+	});
+	
+	Control = { 
+		Light: {
+			shouldRespondeAutomatically: false
+		},
+		Dark: {
+			shouldRespondeAutomatically: true
+		},
+		lookaheadSteps: 2,
+		
+		shouldSideRespondeAutomatically: function(side) {
+			if (side == Side.Light) {
+				return Control.Light.shouldRespondeAutomatically;
+			} else if (side == Side.Dark) {
+				return Control.Dark.shouldRespondeAutomatically;
+			}	
+		},
+		
+		initialize: function() {
+			Control.initializeMemory();
+			UI.initializeUiEventHandlers();
+		},
+		
+		initializeMemory: function() {
+			var pieces = [];
+		
+			for (var i = 0; i < 8; i++) {
+				var square = (i + 1).toString() + "2";
+				var newPawn = new Pawn(Side.Light, square);
+				pieces.push(newPawn);
+			}
+		
+			pieces.push(new Rook(Side.Light, "11"));
+			pieces.push(new Rook(Side.Light, "81"));
+		
+			pieces.push(new Knight(Side.Light, "21"));
+			pieces.push(new Knight(Side.Light, "71"));
+		
+			pieces.push(new Bishop(Side.Light, "31"));
+			pieces.push(new Bishop(Side.Light, "61"));
+		
+			pieces.push(new Queen(Side.Light, "41"));
+		
+			pieces.push(new King(Side.Light, "51"));
+		
+			for (var i = 0; i < 8; i++) {
+				var square = (i + 1).toString() + "7";
+				var newPawn = new Pawn(Side.Dark, square);
+				pieces.push(newPawn);
+			}
+		
+			pieces.push(new Rook(Side.Dark, "18"));
+			pieces.push(new Rook(Side.Dark, "88"));
+		
+			pieces.push(new Knight(Side.Dark, "28"));
+			pieces.push(new Knight(Side.Dark, "78"));
+		
+			pieces.push(new Bishop(Side.Dark, "38"));
+			pieces.push(new Bishop(Side.Dark, "68"));
+		
+			pieces.push(new Queen(Side.Dark, "48"));
+		
+			pieces.push(new King(Side.Dark, "58"));
+		
+		
+			var newState = new State(pieces);
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				piece.state = newState;
+			}
+			newState.score = new Score(newState);
+		
+		
+			State.currentState = newState;
+		
+		},
+		
+		stateCount: 1,
+		
+		movePiece: function(piece, toSquare) {
+			UI.resetAllCells();
+			
+			var fromSquare = piece.square;
+			var initialState = piece.state;
+			
+			var transitionState = initialState.clone();
+			
+			var transitionStatePiece = transitionState.board.pieceAt(piece.square);
+			
+			transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
+			//transitionStatePiece.moveTo(toSquare);
+			
+			var newState = transitionState;
+			State.currentState = newState;
+			newState.stateCount = Control.stateCount++;
+			
+			// Update UI.
+			UI.movePieceElement(fromSquare, toSquare);
+			UI.specialUpdateAllPieceElements(newState.board); 
+			
+			var oppositeSide = Side.opposite(transitionStatePiece.side);
+			if (newState.isSideInCheck(oppositeSide)) {
+				var otherSidesKing = newState.pieces.getKingOfSide(oppositeSide);
+				UI.getCellElement(otherSidesKing.square).addClass("inCheck");
+			}
+			
+			if ("you really want to check if this side is in check" != "") {
+				if (Util.isSideInCheck(newState, transitionStatePiece.side)) {
+					var king = newState.pieces.getKingOfSide(transitionStatePiece.side);
+					UI.getCellElement(king.square).addClass("inCheck");
+				}
+			}
+			
+			
+			MoveHistory.registerMove(transitionStatePiece, fromSquare, toSquare, initialState, newState);
+			
+			if (newState.isSideInCheck(oppositeSide) && newState.isSideInCheckMate(oppositeSide)) { // TODO: This is suspect.  isSideInCheckMate should include isSideInCheck.
+				
+				console.log("CHECKMATE!!!")
+				
+				return;
+			} 
+			// Stalemate?
+			
+			UI.updateForSidesTurn(piece.side.opposite);
+			
+			// Setup other side's next turn.
+			var otherSide = Side.opposite(piece.side);
+			if (Control.shouldSideRespondeAutomatically(otherSide)) {
+				setTimeout(function() {
+					Computation.makeComputedMove(otherSide);
+				}, 750);
+			}
+		},
+		
+		BoardEdit: {
+			removePieceAtSquare: function(square) {
+				var piece = State.currentState.board.pieceAt(square);
+				
+				Computation.clear();
+				MoveHistory.clear();
+				
+				State.currentState.pieces.remove(piece);
+		 	    State.currentState.board.removePiece(piece, square);
+				
+				UI.removePieceElement(square);
+			},
+			
+			movePiece: function(fromSquare, toSquare) {
+				var piece = State.currentState.board.pieceAt(fromSquare);
+				
+				Computation.clear();
+				MoveHistory.clear();
+				
+		 	    State.currentState.board.movePiece(piece, fromSquare, toSquare);
+				
+				piece.square = toSquare;
+				piece.hasNeverMoved = false;
+				
+				
+				UI.movePieceElement(fromSquare, toSquare);
+			},
+			
+			addPiece: function(piece, square) {
+				Computation.clear();
+				MoveHistory.clear();
+				
+		 	    State.currentState.board.addPiece(piece, square);
+				State.currentState.pieces.add(piece);
+				
+				UI.addPieceElement(square, piece);
+			}
+		}
+	};
+	
+	
+	
+	/*
+	Squares will be programatically represented by a string of two characters
+	with the first character representing the number of the column (1-8) and the 
+	second character representing the number of the row (1-8).  Ex. "38"
+
+	[18][28][38][48][58][68][78][88]
+	[17][27][37][47][57][67][77][87]
+	[16][26][36][46][56][66][76][86]
+	[15][25][35][45][55][65][75][85]
+	[14][24][34][44][54][64][74][84]
+	[13][23][33][43][53][63][73][83]
+	[12][22][32][42][52][62][72][82]
+	[11][21][31][41][51][61][71][81]
+	
+	*/
+	
+	
+	////////// Piece //////////
+	
+	var Side = {
+		Light: {name: "Light", direction: 1},
+		Dark: {name: "Dark", direction: -1},
+		opposite: function(side) {return (side == Side.Light ? Side.Dark : Side.Light)}
+	}
+	Side.Light.opposite = Side.Dark;
+	Side.Dark.opposite = Side.Light;
+	
+	class Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			this.side = side;
+			this.square = square;
+			this.state = state;
+			this.id = id || square;
+			this.hasNeverMoved = (hasNeverMoved != null ? hasNeverMoved : true);
+			
+			this.legalMoves = null;
+		}
+		
+		getPosition() {
+			return Position.from(this.square);
+		}
+		
+		getLegalMoves() {
+			if (this.legalMoves == null) {
+				this.legalMoves = this.filterOutMovesThatResultInCheck(this.getRawLegalMoves());
+			}
+			return this.legalMoves	
+		}
+		
+		refresh() {
+			this.legalMoves = null;
+		}
+		
+		moveTo(newSquare) {
+			if (!this.getRawLegalMoves().includes(newSquare)) {
+				if (!this instanceof King && this.isCastling) {
+					throw "Attempt to move piece ilegally.";
+				}
+			}
+			var oldSquare = this.square;
+			var pieceAtTargetPosition = this.state.board.pieceAt(newSquare);
+			var pieceCaptured = (pieceAtTargetPosition != null);
+			
+			// Memory
+			if (pieceCaptured) {
+				this.state.pieces.remove(pieceAtTargetPosition);
+			}
+			this.state.board.movePiece(this, oldSquare, newSquare);
+			
+			this.square = newSquare;
+			this.hasNeverMoved = false;
+		}
+		
+		isOpponent(otherPiece) {
+			return (this.side != otherPiece.side);
+		}
+		
+		/* --------- Protected (helper) ---------- */
+		
+		addDiagonals(nextPositionList) {
+			this.addDirection(nextPositionList, -1, 1); // Up Left
+			this.addDirection(nextPositionList, -1, -1); // Down Left
+			this.addDirection(nextPositionList, 1, 1); // Up Right
+			this.addDirection(nextPositionList, 1, -1); // Down Right
+		}
+		
+		addOrthogonals(nextPositionList) {
+			this.addDirection(nextPositionList, 0, 1); // Up
+			this.addDirection(nextPositionList, 0, -1); // Down
+			this.addDirection(nextPositionList, 1, 0); // Right
+			this.addDirection(nextPositionList, -1, 0); // Left
+		}
+		
+		addDirection(nextPositionList, xDirection, yDirection) {
+			var pieceFound = false;
+			var column = this.getPosition().getColumn() + xDirection;
+			var row = this.getPosition().getRow() + yDirection;
+			var isColumnValid = (xDirection == 0 ? function(){return true} : (xDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
+			var isRowValid = (yDirection == 0 ? function(){return true} : (yDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
+			while (!pieceFound && isColumnValid(column) && isRowValid(row)) {
+				pieceFound = this.addToListIfNotSameSide(nextPositionList, column, row);
+				column = column + xDirection;
+				row = row + yDirection;
+			}
+		}
+		
+		addToListIfNotSameSide(nextPositionList, column, row) {
+			var pieceFound = false;
+			var nextPosition = Position.fromPoint(column, row);
+			var pieceAtTargetPosition = this.state.board.pieceAt(nextPosition.square);
+			if (pieceAtTargetPosition == null) {
+				nextPositionList.push(nextPosition);
+			} else {
+				pieceFound = true;
+				if (this.isOpponent(pieceAtTargetPosition)) {
+					nextPositionList.push(nextPosition);
+				}
+			}
+			return pieceFound;
+		}
+		
+		addToLegalMovesIfNotSameSide(legalMoves, nextPositionList) {
+			for (var i = 0; i < nextPositionList.length; i++) {
+				var nextPosition = nextPositionList[i];
+				if (nextPosition != null && nextPosition.isValid()) {
+					var pieceAtTargetPosition = this.state.board.pieceAt(nextPosition.square);
+					if (pieceAtTargetPosition == null || this.isOpponent(pieceAtTargetPosition)) {
+						legalMoves.push(nextPosition.square);
+					}
+				}
+			}	
+		}
+		
+		filterOutMovesThatResultInCheck(legalMoves) {
+			var result = [];
+			for (var i = 0; i < legalMoves.length; i++) {
+				var move = legalMoves[i];
+				
+				var fromSquare = this.square;
+				var toSquare = move;
+				var initialState = this.state;
+				var transitionState = initialState.clone();
+				var transitionStatePiece = transitionState.board.pieceAt(this.square);
+				
+				transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
+			
+				var newState = transitionState;
+				
+				if (!newState.isSideInCheck(this.side)) {
+					result.push(move);
+				}
+			}
+			return result;
+		}
+	}
+	
+	////////// Pawn //////////
+	class Pawn extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Pawn";
+			this.points = 1;
+		}
+		
+		clone() {
+			return new Pawn(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			
+			if (this.getPosition().getRow() == 0 || this.getPosition().getRow() == 7) {
+				return [];
+			}
+			
+			var canMoveOneForward = false;
+			
+			// Check if move one forward available.
+			var targetPosition = this.getPosition().diff(0, this.side.direction * 1);
+			if (this.state.board.pieceAt(targetPosition.square) == null) {
+				legalMoves.push(targetPosition.square);
+				canMoveOneForward = true;
+			}
+			
+			// Check if move two forward available.
+			if (this.hasNeverMoved && canMoveOneForward) {
+				var targetPosition = this.getPosition().diff(0, this.side.direction * 2);
+				if (this.state.board.pieceAt(targetPosition.square) == null) {
+					legalMoves.push(targetPosition.square);
+				}
+			}
+			
+			// Check if left diagonal attack available.
+			if (this.getPosition().getColumn() > 0) {
+				var targetPosition = this.getPosition().diff(-1, this.side.direction * 1);
+				var pieceAtTargetPosition = this.state.board.pieceAt(targetPosition.square);
+				if (pieceAtTargetPosition != null && this.isOpponent(pieceAtTargetPosition)) {
+					legalMoves.push(targetPosition.square);
+				}
+			}
+			
+			// Check if right diagonal attack available.
+			if (this.getPosition().getColumn() < 7) {
+				var targetPosition = this.getPosition().diff(1, this.side.direction * 1);
+				var pieceAtTargetPosition = this.state.board.pieceAt(targetPosition.square);
+				if (pieceAtTargetPosition != null && this.isOpponent(pieceAtTargetPosition)) {
+					legalMoves.push(targetPosition.square);
+				}
+			}
+			
+			// TODO: Fix!
+			
+			
+			// Check for en passant on left.
+			if (this.getPosition().getColumn() > 0) {
+				var opponentPawnPosition = this.getPosition().diff(-1, 0);
+				var pieceAtTargetPosition = this.state.board.pieceAt(opponentPawnPosition.square);
+				if (pieceAtTargetPosition instanceof Pawn && this.isOpponent(pieceAtTargetPosition)) { // Square directly to left is occupied by enemy pawn.
+					var lastMove = this.state.move;
+					//var lastMove = MoveHistory.getLastMove();
+					if (lastMove.toSquare == opponentPawnPosition.square) { // Last move was made by this pawn.
+						if (Math.abs(Position.from(lastMove.toSquare).getRow() - Position.from(lastMove.fromSquare).getRow()) == 2) { // This pawn's last move was an advance of two squares.
+							var targetPosition = this.getPosition().diff(-1, this.side.direction * 1);
+							legalMoves.push(targetPosition.square);
+						}
+					}
+				}
+			}
+			
+			// Check for en passant on right.
+			if (this.getPosition().getColumn() < 7) {
+				var opponentPawnPosition = this.getPosition().diff(1, 0);
+				var pieceAtTargetPosition = this.state.board.pieceAt(opponentPawnPosition.square);
+				if (pieceAtTargetPosition instanceof Pawn && this.isOpponent(pieceAtTargetPosition)) { // Square directly to right is occupied by enemy pawn.
+					var lastMove = this.state.move;
+					//var lastMove = MoveHistory.getLastMove();
+					if (lastMove.toSquare == opponentPawnPosition.square) { // Last move was made by this pawn.
+						if (Math.abs(Position.from(lastMove.toSquare).getRow() - Position.from(lastMove.fromSquare).getRow()) == 2) { // This pawn's right move was an advance of two squares.
+							var targetPosition = this.getPosition().diff(1, this.side.direction * 1);
+							legalMoves.push(targetPosition.square);
+						}
+					}
+				}
+			}
+			
+			
+			return legalMoves;
+		}
+		
+		moveTo(newSquare) {
+			if (Position.from(this.square).getColumn() != Position.from(newSquare).getColumn() && this.state.board.pieceAt(newSquare) == null) { // En passant.
+				var xDiff = Position.from(newSquare).getColumn() - Position.from(this.square).getColumn();
+				var opponentPiecePosition = this.getPosition().diff(xDiff, 0);
+				var opponentPiece = this.state.board.pieceAt(opponentPiecePosition.square);
+				this.state.board.removePiece(opponentPiece, opponentPiece.square);
+				this.state.pieces.remove(opponentPiece);
+				
+				//removePieceElement(opponentPiece.square);
+			}
+			super.moveTo(newSquare); // Any case.
+			if (Position.from(newSquare).getRow() == 0 || Position.from(newSquare).getRow() == 7) { // Promotion.
+				// Replace pawn with promotion piece (only queen for now).
+				var newPiece = new Queen(this.side, newSquare, this.state);
+				this.state.board.promotePiece(this, newPiece, newSquare);
+				this.state.pieces.remove(this);
+				this.state.pieces.add(newPiece);
+				
+				//replacePieceElement(newSquare, newPiece);
+				
+				//this.checkIfOtherSideInCheck();
+			}
+		}
+	}
+	
+	////////// Knight //////////
+	class Knight extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Knight";
+			this.points = 3;
+		}
+		
+		clone() {
+			return new Knight(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			var nextPositionList = [
+				this.getPosition().diff(-2, -1),
+				this.getPosition().diff(-2, 1),
+				this.getPosition().diff(-1, -2),
+				this.getPosition().diff(-1, 2),
+				this.getPosition().diff(1, -2),
+				this.getPosition().diff(1, 2),
+				this.getPosition().diff(2, -1),
+				this.getPosition().diff(2, 1)
+			];
+			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
+			return legalMoves;
+		}
+	}
+	
+	////////// Bishop //////////
+	class Bishop extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Bishop";
+			this.points = 3;
+		}
+		
+		clone() {
+			return new Bishop(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			var nextPositionList = [];
+			this.addDiagonals(nextPositionList);
+			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
+			return legalMoves;
+		}
+	}
+	
+	////////// Rook //////////
+	class Rook extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Rook";
+			this.points = 5;
+		}
+		
+		clone() {
+			return new Rook(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			var nextPositionList = [];
+			this.addOrthogonals(nextPositionList);
+			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
+			return legalMoves;
+		}
+	}
+	
+	////////// Queen //////////
+	class Queen extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Queen";
+			this.points = 9;
+		}
+		
+		clone() {
+			return new Queen(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			var nextPositionList = [];
+			this.addDiagonals(nextPositionList);
+			this.addOrthogonals(nextPositionList);
+			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
+			return legalMoves;
+		}
+	}
+	
+	////////// King //////////
+	class King extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "King";
+			this.isCastling = false;
+		}
+		
+		clone() {
+			return new King(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		getRawLegalMoves() {
+			var legalMoves = [];
+			var nextPositionList = [
+				this.getPosition().diff(-1, -1),
+				this.getPosition().diff(-1, 0),
+				this.getPosition().diff(-1, 1),
+				this.getPosition().diff(0, -1),
+				this.getPosition().diff(0, 1),
+				this.getPosition().diff(1, -1),
+				this.getPosition().diff(1, 0),
+				this.getPosition().diff(1, 1)
+			];
+			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
+			
+			// Check King-side castle.
+			// TODO: Check that king does not moved through attacked square.
+			if (this.hasNeverMoved) { // King has never moved.
+				var row = this.getPosition().getRow();
+				var kingsRookPosition = Position.fromPoint(7, row);
+				var kingsRook = this.state.board.pieceAt(kingsRookPosition.square);
+				if (kingsRook != null && kingsRook.hasNeverMoved) { // King's Rook has never moved.
+					var clear = true;
+					for (var x = 5; x <= 6; x++) {
+						var probePosition = Position.fromPoint(x, row);
+						var probePiece = this.state.board.pieceAt(probePosition.square);
+						if (probePiece != null) {
+							clear = false;
+						}
+					}
+					if (clear) { // Space between king and rook clear. 
+						// Check if king in check or if middle square attackable.
+						var middleSquare = Position.fromPoint(5, row).square;
+						var oppositeSideLegalMoves = Util.getAllNonKingRawLegalMovesOfSide(this.state, this.side.opposite);
+						if (!oppositeSideLegalMoves.includes(this.square) && !oppositeSideLegalMoves.includes(middleSquare)) {
+							var targetPosition = Position.fromPoint(6, row);
+							legalMoves.push(targetPosition.square);
+						}
+					}
+				}
+				
+				
+				// Check Queen-side castle.
+				var queensRookPosition = Position.fromPoint(0, row);
+				var queensRook = this.state.board.pieceAt(queensRookPosition.square);
+				if (queensRook != null && queensRook.hasNeverMoved) { // Queen's Rook has never moved.
+					var clear = true;
+					for (var x = 1; x <= 3; x++) {
+						var probePosition = Position.fromPoint(x, row);
+						var probePiece = this.state.board.pieceAt(probePosition.square);
+						if (probePiece != null) {
+							clear = false;
+						}
+					}
+					if (clear) { // Space between king and rook clear. 
+						// Check if king in check or if middle square attackable.
+						var middleSquare = Position.fromPoint(3, row).square;
+						var oppositeSideLegalMoves = Util.getAllNonKingRawLegalMovesOfSide(this.state, this.side.opposite);
+						if (!oppositeSideLegalMoves.includes(this.square) && !oppositeSideLegalMoves.includes(middleSquare)) {
+							var targetPosition = Position.fromPoint(2, row);
+							legalMoves.push(targetPosition.square);
+						}
+					}
+				}
+			}
+			
+			return legalMoves;
+		}
+		
+		moveTo(newSquare) {
+			var row = this.getPosition().getRow();
+			if (this.hasNeverMoved && newSquare == Position.fromPoint(6, row).square) { // King-side Castle.
+				this.isCastling = true;
+				
+				var kingsRookPosition = Position.fromPoint(7, row);
+				var kingsRook = this.state.board.pieceAt(kingsRookPosition.square);
+				var newKingsRookPosition = Position.fromPoint(5, row);
+				
+				// Action!
+				kingsRook.moveTo(newKingsRookPosition.square);
+				//movePieceElement(kingsRookPosition.square, newKingsRookPosition.square);
+			} else if (this.hasNeverMoved && newSquare == Position.fromPoint(2, row).square) { // Queen-side Castle.
+				this.isCastling = true;
+				
+				var queensRookPosition = Position.fromPoint(0, row);
+				var queensRook = this.state.board.pieceAt(queensRookPosition.square);
+				var newQueensRookPosition = Position.fromPoint(3, row);
+				
+				// Action!
+				queensRook.moveTo(newQueensRookPosition.square);
+				//movePieceElement(queensRookPosition.square, newQueensRookPosition.square);
+			}
+			super.moveTo(newSquare); // Any case.
+			
+			this.isCastling = false;
+		}
+	}
+	
+	/************************* Position **************************/
+	/*
+	Position is abstract while Board is concrete.  
+	A Position need not exist for a square on the board to exist.
+	*/
+	
+	function Position(square) {
+		this.square = square;
+		
+		this.diff = function(xDiff, yDiff) {
+			return Position.from((this.getColumn() + 1 + xDiff).toString() + (this.getRow() + 1 + yDiff).toString());
+		}
+		
+		this.getColumn = function() {
+			return Number.parseInt(this.square[0]) - 1; // Number
+		}
+		
+		this.getRow = function() {
+			return Number.parseInt(this.square[1]) - 1; // Number
+		}
+		
+		this.isValid = function() {
+			return (this.getColumn() >= 0 && this.getRow() >= 0 && this.getColumn() <= 7 && this.getRow() <= 7);
+		}
+	}
+	
+	Position.from = function(square) {
+		if (square == null) {
+			return null;
+		}
+		var newPosition = new Position(square);
+		if (square.length > 2 || !newPosition.isValid()) {
+			return null;
+		}
+		return newPosition;
+	}
+	
+	Position.fromPoint = function(column, row) {
+		return Position.from((column + 1).toString() + (row + 1).toString());
+	}
+	
+	/************************* --- **************************/
+	
+	var Util = {
+		getAllRawLegalMovesOfSide: function(state, side) {
+			var allLegalMoves = [];
+			
+			var allPiecesOfSide = state.pieces.getAllOfSide(side);
+			for (var i = 0; i < allPiecesOfSide.length; i++) {
+				var piece = allPiecesOfSide[i];
+				var allLegalMovesOfPiece = piece.getRawLegalMoves();
+				allLegalMoves = allLegalMoves.concat(allLegalMovesOfPiece);
+			}
+			
+			return allLegalMoves;
+		},
+		
+		getAllNonKingRawLegalMovesOfSide: function(state, side) {
+			var legalMoves = [];
+			
+			var allPiecesOfSide = state.pieces.getAllOfSide(side);
+			for (var i = 0; i < allPiecesOfSide.length; i++) {
+				var piece = allPiecesOfSide[i];
+				if (!(piece instanceof King)) {
+					var allLegalMovesOfPiece = piece.getRawLegalMoves();
+					legalMoves = legalMoves.concat(allLegalMovesOfPiece);
+				}
+			}
+			
+			return legalMoves;
+		},
+		
+		getAllLegalMovesOfSide: function(state, side) {
+			var allLegalMoves = [];
+			
+			var allPiecesOfSide = state.pieces.getAllOfSide(side);
+			for (var i = 0; i < allPiecesOfSide.length; i++) {
+				var piece = allPiecesOfSide[i];
+				var allLegalMovesOfPiece = piece.getLegalMoves();
+				allLegalMoves = allLegalMoves.concat(allLegalMovesOfPiece);
+			}
+			
+			return allLegalMoves;
+		},
+		
+		isSideInCheck: function(state, side) {
+			var king = state.pieces.getKingOfSide(side);
+			if (king == null) {
+				return false;
+			}
+			var otherSidesMoves = Util.getAllRawLegalMovesOfSide(state, Side.opposite(side));
+			for (var i = 0; i < otherSidesMoves.length; i++) {
+				var attackedSquare = otherSidesMoves[i];
+				if (attackedSquare == king.square) {
+					return true;
+				}
+			}
+			return false;
+		},
+		
+		isSideInCheckMate: function(state, side) {
+			return (Util.isSideInCheck(state, side) && Util.getAllLegalMovesOfSide(state, side).length == 0);
+		}
+		
+	}
+	
+	/************************* Move History **************************/
+	
+	var MoveHistory = {
+		stack: [],
+		registerMove: function(piece, fromSquare, toSquare, initialState, finalState) {
+			MoveHistory.stack.push(new Move(piece, fromSquare, toSquare, initialState, finalState));
+		},
+		getLastMove: function() {
+			return MoveHistory.stack[MoveHistory.stack.length - 1];
+		},
+		clear: function() {
+			MoveHistory.stack = [];
+		}
+	};
+	
+	class Move {
+		constructor(piece, fromSquare, toSquare, initialState, finalState) {
+			this.piece = piece;
+			this.fromSquare = fromSquare;
+			this.toSquare = toSquare;
+			this.initialState = initialState;
+			this.finalState = finalState;
+		}
+	}
+	
+	/************************* State **************************/
+	
+	class State {
+		constructor(pieces) {
+			this.pieces = new Pieces(pieces);
+			this.board = new Board(pieces);
+			this.score = null;
+			
+			this.move = null;
+			this.isLightSideInCheck = null;
+			this.isDarkSideInCheck = null;
+		}
+		
+		clone() {
+			var newPieces = [];
+			var pieces = this.pieces.getAll();
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				var newPiece = piece.clone();
+				newPieces.push(newPiece);
+			}
+			var newState = new State(newPieces);
+			for (var i = 0; i < newPieces.length; i++) {
+				var newPiece = newPieces[i];
+				newPiece.state = newState;
+			}
+			return newState;
+		}
+		
+		isSideInCheck(side) {
+			if (side == Side.Light) {
+				if (this.isLightSideInCheck == null) {
+					this.isLightSideInCheck = Util.isSideInCheck(this, side);
+				}
+				return this.isLightSideInCheck;
+			} else if (side == Side.Dark) {
+				if (this.isDarkSideInCheck == null) {
+					this.isDarkSideInCheck = Util.isSideInCheck(this, side);
+				}
+				return this.isDarkSideInCheck;
+			}
+			return null;
+		}
+		
+		isSideInCheckMate(side) {
+			return Util.isSideInCheckMate(this, side);
+		}
+		
+		transition(piece, fromSquare, toSquare, initialState) {
+			this.move = new Move(piece, fromSquare, toSquare, initialState, this);
+			
+			piece.moveTo(toSquare);
+			
+			
+			// Post-move analysis.
+			this.isSideInCheck(piece.side.opposite);
+			
+			this.score = new Score(this);
+		}
+		
+		didMoveResultInCapture() {
+			return this.initialState
+		}
+	}
+	
+	State.currentState = null;
+	
+	/************************* Score **************************/
+	
+	class Score {
+		constructor(state) {
+			this.state = state;
+			
+			this.lightPoints = this.calculatePointsForSide(Side.Light);
+			this.darkPoints = this.calculatePointsForSide(Side.Dark);
+		}
+		
+		getPointsForSide(side) {
+			if (side == Side.Light) {
+				return this.lightPoints;
+			} else if (side == Side.Dark) {
+				return this.darkPoints;
+			}
+			return null;
+		}
+		
+		calculatePointsForSide(side) {
+			var points = 39;
+			var piecesOfOtherSide = this.state.pieces.getAllOfSide(side.opposite);
+			for (var i = 0; i < piecesOfOtherSide.length; i++) {
+				var piece = piecesOfOtherSide[i];
+				if (!(piece instanceof King)) {
+					points -= piece.points;
+				}
+			}
+			return points;
+		}
+	}
+	
+	/************************* Board **************************/
+	
+	class Board {
+		constructor(pieces) {
+			this.board = this.generateBoard();
+			this.populateBoard(pieces);
+		}
+		
+		generateBoard() {
+			var board = [];
+			for (var i = 0; i < 8; i++) {
+				var column = [];
+				for (var j = 0; j < 8; j++) {
+					column[j] = null;
+				}
+				board[i] = column;
+			}
+			return board;
+		}
+		
+		printBoard() {
+			for (var row = 7; row >= 0; row--) {
+				var rowString = (row + 1) + " ";
+				for (var column = 0; column <= 7; column++) {
+					var piece = this.board[column][row];
+					var contentCharacter = " ";
+					if (piece != null) {
+						contentCharacter = piece.constructor.name.charAt(0);
+						if (piece instanceof Knight) {
+							contentCharacter = "N";
+						}
+						if (piece.side == Side.Light) {
+							contentCharacter = contentCharacter.toUpperCase();
+						} else if (piece.side == Side.Dark) {
+							contentCharacter = contentCharacter.toLowerCase();
+						}
+					}
+					rowString += "[" + contentCharacter + "]";
+				}
+				console.log(rowString);
+			}
+		}
+		
+		populateBoard(pieces) {
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				this.addPiece(piece, piece.square);
+			}
+		}
+		
+		pieceAt(square) {
+			return this.board[Number.parseInt(square[0]) - 1][Number.parseInt(square[1]) - 1];
+		}
+		
+		movePiece(piece, fromSquare, toSquare) {
+			this.removePiece(piece, fromSquare);
+			this.addPiece(piece, toSquare);
+		}
+		
+		removePiece(piece, square) {
+			this.board[Number.parseInt(square[0]) - 1][Number.parseInt(square[1]) - 1] = null;
+		}
+		
+		addPiece(piece, square) {
+			this.board[Number.parseInt(square[0]) - 1][Number.parseInt(square[1]) - 1] = piece;
+		}
+		
+		promotePiece(oldPiece, newPiece, square) {
+			this.removePiece(oldPiece, square);
+			this.addPiece(newPiece, square);
+		}
+	}
+	
+	/************************* Pieces **************************/
+	
+	class Pieces {
+		constructor(pieces) {
+			this.pieces = [];
+			this.lightPieces = [];
+			this.darkPieces = []; 
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				this.add(piece);
+			}
+		}
+		
+		getAll() {
+			return this.pieces;
+		}
+		
+		getAllOfSide(side) {
+			if (side == Side.Light) {
+				return this.lightPieces; 
+			} else if (side == Side.Dark) {
+				return this.darkPieces;
+			}
+			return null;
+		}
+		
+		add(piece) {
+			this.pieces.push(piece);
+			if (piece.side == Side.Light) {
+				this.lightPieces.push(piece);
+			} else if (piece.side == Side.Dark) {
+				this.darkPieces.push(piece);
+			}
+		}
+		
+		remove(piece) {
+			removeFromArray(this.pieces, piece);
+			if (piece.side == Side.Light) {
+				removeFromArray(this.lightPieces, piece);
+			} else if (piece.side == Side.Dark) {
+				removeFromArray(this.darkPieces, piece);
+			}
+		}
+		
+		getKingOfSide(side) {
+			var allPiecesOfSide = this.getAllOfSide(side);
+			for (var i = 0; i < allPiecesOfSide.length; i++) {
+				var piece = allPiecesOfSide[i];
+				if (piece instanceof King) {
+					return piece;
+				}
+			}
+			return null;
+		}
+	}
+	
+	
+	/************************* Auto-moving **************************/
+	
+	Computation = {
+		cyclesPerformed: 0,
+		currentProjection: null,
+		
+		reset: function() {
+			Computation.cyclesPerformed = 0;
+		},
+		
+		clear: function() {
+			Computation.currentProjection = null;
+			Computation.reset();
+		},
+		
+		makeComputedMove: function(side) {
+			//console.log("################################################################");
+			//console.log("Begining new computation...");
+			Computation.stopWatch = new StopWatch();
+			Computation.stopWatch.start();
+			//console.log("getSecondLevelMoveProjectionList...");
+			var moveProjectionList = Computation.getSecondLevelMoveProjectionList(side, State.currentState);
+			Computation.stopWatch.lap();
+			//console.log("determineAndExecuteNextProcessingStep...");
+			Computation.determineAndExecuteNextProcessingStep(moveProjectionList, side, State.currentState);
+		},
+		
+		makeComputedMoveCallback: function(bestProjectionNode) {
+			var originalProjection = Computation.currentProjection;
+		
+			var bestMove = bestProjectionNode.finalState.move;
+			Computation.currentProjection = bestProjectionNode.projection;
+		
+			var piece = State.currentState.board.pieceAt(bestMove.fromSquare);
+			Control.movePiece(piece, bestMove.toSquare);
+		
+			//console.log("Finished computation!");
+			Computation.stopWatch.stop();
+		
+			console.log ("Total posibilities: " + Computation.currentProjection.getTotalPossibilityCount());
+		
+			Computation.reset();
+		},
+		
+		getSecondLevelMoveProjectionList: function(side, initialState) {
+			var moveProjectionList = [];
+			var lookaheadSteps = 2;
+
+			//console.log("getSecondLevelProjection");
+			var projection = Computation.getSecondLevelProjection(side, lookaheadSteps, initialState, true);
+			Computation.stopWatch.lap();
+			//console.log("getValue etc...");
+
+			for (var i = 0; i < projection.projectionNodeList.length; i++) {
+				var firstLevelProjectionNode = projection.projectionNodeList[i];
+
+				var value = firstLevelProjectionNode.getValue(side, initialState);
+				var moveProjection = new MoveProjection(firstLevelProjectionNode, value, lookaheadSteps);
+				moveProjectionList.push(moveProjection);
+			}
+
+			moveProjectionList.sort((a, b) => b.value - a.value);
+
+			return moveProjectionList;
+		},
+		
+		getSecondLevelProjection: function(side, lookaheadSteps, initialState, doUseCachedProjection) {
+			var projection = (doUseCachedProjection ? Computation.currentProjection : null);
+			if (projection == null) {
+				//console.log("new Projection");
+				projection = new Projection(side, lookaheadSteps, initialState);
+			} else {
+				//console.log("projectAnotherLevel");
+				projection.projectAnotherLevel(2);
+				projection.refresh();
+			}
+			return projection;
+		},
+		
+		determineAndExecuteNextProcessingStep: function(moveProjectionList, side, initialState) {
+			if (Computation.shouldDoAnotherStep(moveProjectionList)) {
+				Computation.stopWatch.lap();
+				//console.log("establishNextProcessThread...");
+				Computation.establishNextProcessThread(moveProjectionList, side, initialState);
+			} else {
+				var bestMove = moveProjectionList[0].projectionNode;
+				Computation.stopWatch.lap();
+				//console.log("makeComputedMoveCallback...");
+				Computation.makeComputedMoveCallback(bestMove);
+			}
+		},
+		
+		nextThreadTimeout: null,
+		
+		establishNextProcessThread: function(moveProjectionList, side, initialState) {
+			Computation.nextThreadTimeout = setTimeout(
+				function() {
+					Computation.stopWatch.lap();
+					//console.log("processOneCycleMoveProjectionList...");
+					Computation.processOneCycleMoveProjectionList(moveProjectionList, side, initialState);
+				},
+				10
+			);
+		},
+		
+		shouldDoAnotherStep: function(moveProjectionList) {
+			Computation.stopWatch.lap();
+			//console.log("shouldDoAnotherStep...");
+			//console.log("Computation.cyclesPerformed: " + Computation.cyclesPerformed);
+		
+			if (Computation.cyclesPerformed >= moveProjectionList.length) {
+				return false;
+			}
+		
+			//return false;
+			var minCycles = 3;
+			var maxCycles = 10;
+			var maxTime = 10000;
+			//if (Computation.cyclesPerformed >= maxCycles) {
+			//	return false;
+			//} else if (Computation.cyclesPerformed < minCycles) {
+			//	return true;
+			//}
+		
+			if (Computation.stopWatch.getTotalTime() > maxTime) {
+				return false;
+			} else {
+				return true;
+			}
+		
+			if (moveProjectionList[0].lookaheadSteps == 2) {
+				return true;
+			}
+			return false;
+		},
+		
+		processOneCycleMoveProjectionList: function(moveProjectionList, side, initialState) {
+			//console.log("getFirstUnprocessedMoveProjection");
+			var moveProjection = Computation.getFirstUnprocessedMoveProjection(moveProjectionList);
+			Computation.stopWatch.lap();
+			//console.log("advanceProjection");
+			Computation.advanceProjection(moveProjection, side, initialState);
+			Computation.stopWatch.lap();
+			//console.log("sort");
+			moveProjectionList.sort((a, b) => b.value - a.value);
+			Computation.stopWatch.lap();
+			//console.log("determineAndExecuteNextProcessingStep");
+			Computation.cyclesPerformed++;
+			Computation.determineAndExecuteNextProcessingStep(moveProjectionList, side, initialState);
+		},
+		
+		getFirstUnprocessedMoveProjection: function(moveProjectionList) {
+			for (var i = 0; i < moveProjectionList.length; i++) {
+				var moveProjection = moveProjectionList[i];
+			
+				if (moveProjection.lookaheadSteps == 2) {
+					return moveProjection;
+				}
+			}
+			return null;
+		},
+		
+		advanceProjection: function(moveProjection, side, initialState) {
+			var opponentBestMoveProjectionNode = Computation.getOpponentBestNextMoveProjectionNode(moveProjection, side);
+		
+			if (opponentBestMoveProjectionNode == null) {
+				return;
+			}
+		
+			//console.log("getSecondLevelProjection");
+			opponentBestMoveProjectionNode.projection = Computation.getSecondLevelProjection(side, 2, opponentBestMoveProjectionNode.finalState, false);
+			//opponentBestMoveProjectionNode.projection.projectAnotherLevel(2);
+			Computation.stopWatch.lap();
+			//console.log("refresh");
+			moveProjection.projectionNode.refresh();
+
+			Computation.stopWatch.lap();
+			//console.log("getValue");
+			moveProjection.value = moveProjection.projectionNode.getValue(side, initialState);
+			moveProjection.lookaheadSteps += 2;
+		},
+		
+		getOpponentBestNextMoveProjectionNode: function(moveProjection, side) {
+			var bestValue = null;
+			var bestOppenentNextMoveProjectionNode = null;
+			var opponentProjection = moveProjection.projectionNode.projection;
+			for (var i = 0; i < opponentProjection.projectionNodeList.length; i++) {
+				var oppenentNextMoveProjectionNode = opponentProjection.projectionNodeList[i];
+			
+				var value = oppenentNextMoveProjectionNode.getValue(side.opposite, moveProjection.projectionNode.finalState);
+				if (bestValue == null || value > bestValue) {
+					bestValue = value;
+					bestOppenentNextMoveProjectionNode = oppenentNextMoveProjectionNode;
+				}
+			}
+			return bestOppenentNextMoveProjectionNode;
+		}
+	};
+	
+	class ProjectionNode {
+		constructor(projection, finalState) {
+			this.projection = projection;
+			this.finalState = finalState;
+			
+			this.value = null;
+		}
+		
+		getPointsForSide(side) {
+			return this.finalState.getScore().getPointsForSide(side);
+		}
+		
+		getTotalPossibilityCount() {
+			var count = 0;
+			if (this.projection == null) {
+				return 1;
+			} else if (this.projection != null) {
+				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
+					var projectionNode = this.projection.projectionNodeList[i];
+					count += projectionNode.getTotalPossibilityCount();
+				}
+			}
+			return count;
+		}
+		
+		refresh() {
+			this.value = null;
+			if (this.projection != null) {
+				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
+					var projectionNode = this.projection.projectionNodeList[i];
+					projectionNode.refresh();
+				}
+			}
+		}
+		
+		getValue(side, initialState) {
+			if (this.value != null) {
+				return this.value;
+			}
+			var valueAsLeaf = this.getValueAsLeaf(side, initialState);
+			if (this.projection == null) {
+				this.value = valueAsLeaf;
+			} else {
+				var greatestValue = null;
+				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
+					var projectionNode = this.projection.projectionNodeList[i];
+					var projectionNodeValue = projectionNode.getValue(side.opposite, this.finalState);
+					if (greatestValue == null || projectionNodeValue > greatestValue) {
+						greatestValue = projectionNodeValue;
+					}
+				}
+				this.value = valueAsLeaf - greatestValue;
+			}
+			return this.value;
+		}
+		
+		getValueAsLeaf(side, initialState) {
+			if (this.projection != null && this.projection.projectionNodeList.length == 0) { // Opponent will be in checkmate or stalemate.
+				if (Util.isSideInCheckMate(this.finalState, side.opposite)) {
+					return Number.MAX_SAFE_INTEGER;
+				} else {
+					return Number.MIN_SAFE_INTEGER;
+				}
+			}
+			var rawValue = this.finalState.score.getPointsForSide(side) - initialState.score.getPointsForSide(side);
+			var valueAsLeaf = rawValue + this.getValueAdjustment(side, initialState);
+			return valueAsLeaf;
+		}
+		
+		getValueAdjustment(side, initialState) {
+			var adjustment = 0;
+			
+			var movingPiece = this.finalState.move.piece;
+			var movingPieceInitial = initialState.board.pieceAt(this.finalState.move.fromSquare);
+			
+			var x = Position.from(this.finalState.move.fromSquare).getColumn();
+			var y = Position.from(this.finalState.move.fromSquare).getRow();
+			var yHome = (side == Side.Light ? y : 7 - y);
+			
+			var moveXDelta = Math.abs(Position.from(this.finalState.move.fromSquare).getColumn() - Position.from(this.finalState.move.toSquare).getColumn());
+			var moveYDelta = Math.abs(Position.from(this.finalState.move.fromSquare).getRow() - Position.from(this.finalState.move.toSquare).getRow());
+			
+			if (movingPiece instanceof Pawn) {
+				var maxPawnRadiusAdjustment = 0.2;
+				
+				
+				
+				if (yHome <= 4 && (x <= 4 || x == 5 && moveYDelta == 1)) {
+					var xDist = 3.5 - x;
+					var yDist = 1.5 - yHome;
+					var dist = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+				
+					var coefficient = (3.8 - dist) / 3.1;
+					coefficient = normalizeNumberToValueBetween0and1(coefficient);
+					
+					
+					if (moveYDelta < 2 && Math.random() < 0.5) {
+						console.log("not 2 move so ---");
+						coefficient *= 0.9;
+					}
+					
+					var pawnRadiusAdjustment = coefficient * maxPawnRadiusAdjustment;
+					
+					console.log("pawnRadiusAdjustment: " + pawnRadiusAdjustment);
+				
+					adjustment += pawnRadiusAdjustment;
+				}
+			} else if (movingPiece instanceof Knight || movingPiece instanceof Bishop) {
+				if (movingPieceInitial.hasNeverMoved) {
+					if (x >= 5) { // King side.
+						if (Math.random() < 0.5) {
+							adjustment += 0.17 + 0.3 * Math.random();
+						}
+					} else {
+						adjustment += 0.1;
+					}
+					console.log("knight/bishop adjustment: " + adjustment);
+				}
+				
+			} else if (movingPiece instanceof King) {
+				if (movingPieceInitial.hasNeverMoved) {
+					adjustment += -0.05;
+					
+					if (moveXDelta == 2) { // Castle
+						adjustment += 0.75;
+					}
+				}
+			}	
+			// TODO: Discorage king-side rook from moving before castle.
+			
+			return adjustment;
+		}
+	}
+	
+	class Projection {
+		constructor(side, levelCount, initialState) {
+			//console.log("levelCount: " + levelCount);
+			this.side = side;
+			this.initialState = initialState;
+			this.projectionNodeList = this.getNextLevel(side, levelCount, initialState);
+		}
+		
+		refresh() {
+			for (var i = 0; i < this.projectionNodeList.length; i++) {
+				var projectionNode = this.projectionNodeList[i];
+				projectionNode.refresh();
+			}
+		}
+		
+		getTotalPossibilityCount() {
+			var count = 0;
+			for (var i = 0; i < this.projectionNodeList.length; i++) {
+				var projectionNode = this.projectionNodeList[i];
+				count += projectionNode.getTotalPossibilityCount();
+			}
+			return count;
+		}
+		
+		getNextLevel(side, levelCount, initialState) {
+			var projectionList = [];
+			
+			var pieces = initialState.pieces.getAllOfSide(side);
+			pieces = mixArray(pieces);
+		
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				var legalMovesOfPiece = piece.getLegalMoves();
+				legalMovesOfPiece = mixArray(legalMovesOfPiece);
+				for (var j = 0; j < legalMovesOfPiece.length; j++) {
+					var legalMove = legalMovesOfPiece[j];
+				
+					var fromSquare = piece.square;
+					var toSquare = legalMove;
+				
+					var transitionState = initialState.clone();
+					var transitionStatePiece = transitionState.board.pieceAt(piece.square);
+			
+					transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
+			
+					var finalState = transitionState;
+					var move = finalState.move;
+					
+					var nextLevelProjection = null;
+					if (levelCount > 1) {
+						nextLevelProjection = new Projection(side.opposite, levelCount - 1, finalState);
+					}	
+					var nextLevelProjectionNode = new ProjectionNode(nextLevelProjection, finalState);
+					
+					projectionList.push(nextLevelProjectionNode);
+				
+					finalState.move.score = finalState.score.getPointsForSide(transitionStatePiece.side);
+				}
+			}
+		
+			return projectionList;
+		}
+		
+		projectAnotherLevel(totalLevelCount) {
+			for (var i = 0; i < this.projectionNodeList.length; i++) {
+				var projectionNode = this.projectionNodeList[i];
+				this.projectAnotherLevelRecursive(this.side.opposite, projectionNode, totalLevelCount - 1);
+			}	
+		}
+		
+		projectAnotherLevelRecursive(side, projectionNode, totalLevelCount) {
+			if (projectionNode.projection == null) {
+				var newProjection = new Projection(side, totalLevelCount, projectionNode.finalState);
+				projectionNode.projection = newProjection;
+			} else if (totalLevelCount > 1) {
+				for (var i = 0; i < projectionNode.projection.projectionNodeList.length; i++) {
+					var nextLevelProjectionNode = projectionNode.projection.projectionNodeList[i];
+					this.projectAnotherLevelRecursive(side.opposite, nextLevelProjectionNode, totalLevelCount - 1);
+				}
+			}
+		}
+	}
+	
+	class MoveProjection {
+		constructor(projectionNode, value, lookaheadSteps) {
+			this.projectionNode = projectionNode;
+			this.value = value;
+			this.lookaheadSteps = lookaheadSteps;
+		}
+	}
+	
+	
+	/************************* Utility **************************/
+	
+	class StopWatch {
+		contructor() {
+			this.startTime = null;
+			this.timeBeforeLastTime = null;
+			this.lastTime = null;
+			this.endTime = null;
+		}
+		
+		start() {
+			this.startTime = Date.now();
+			this.lastTime = this.startTime;
+		}
+		
+		lap() {
+			this.timeBeforeLastTime = this.lastTime;
+			this.lastTime = Date.now();
+			//this.printLapTime();
+		}
+		
+		stop() {
+			this.endTime = Date.now();
+			this.lastTime = this.endTime;
+			//this.printTotalTime();
+		}
+		
+		getLapTime() {
+			return this.lastTime - this.timeBeforeLastTime;
+		}
+		
+		getTotalTime() {
+			return this.endTime - this.startTime;
+		}
+		
+		printLapTime() {
+			if (this.timeBeforeLastTime != null) {
+				console.log("Lap time: " + this.getLapTime().toString() + " (ms)");
+			}
+		}
+		
+		printTotalTime() {
+			if (this.endTime != null) {
+				console.log("Total time: " + this.getTotalTime().toString() + " (ms)");
+			}
+		}
+	}
+	
+	function normalizeNumberToValueBetween0and1(value) {
+		if (value < 0) {
+			return 0;
+		} else if (value > 1) {
+			return 1;
+		}
+		return value;
+	}
+	
+	function removeFromArray(array, element) {
+		var index = array.indexOf(element);
+		if (index >= 0) {
+			return array.splice(index, 1);
+		}
+		return null;
+	}
+	
+	function mixArray(array) {
+	  var currentIndex = array.length, temporaryValue, randomIndex;
+
+	  // While there remain elements to shuffle...
+	  while (0 !== currentIndex) {
+
+	    // Pick a remaining element...
+	    randomIndex = Math.floor(Math.random() * currentIndex);
+	    currentIndex -= 1;
+
+	    // And swap it with the current element.
+	    temporaryValue = array[currentIndex];
+	    array[currentIndex] = array[randomIndex];
+	    array[randomIndex] = temporaryValue;
+	  }
+
+	  return array;
+	}
+	
+</script>
+</head>
+
+<body>
+	<div class="frameDiv">
+		<div class="boardFrame">
+		<div class="board">
+			<div class="row">
+				<div data-row="8" data-column="1" class="cell light"><div class="cellHighlight"></div><div class="piece dark rook"><span>&#9820;</span></div></div>
+				<div data-row="8" data-column="2" class="cell dark"><div class="cellHighlight"></div><div class="piece dark knight"><span>&#9822;</span></div></div>
+				<div data-row="8" data-column="3" class="cell light"><div class="cellHighlight"></div><div class="piece dark bishop"><span>&#9821;</span></div></div>
+				<div data-row="8" data-column="4" class="cell dark"><div class="cellHighlight"></div><div class="piece dark queen"><span>&#9819;</span></div></div>
+				<div data-row="8" data-column="5" class="cell light"><div class="cellHighlight"></div><div class="piece dark king"><span>&#9818;</span></div></div>
+				<div data-row="8" data-column="6" class="cell dark"><div class="cellHighlight"></div><div class="piece dark bishop"><span>&#9821;</span></div></div>
+				<div data-row="8" data-column="7" class="cell light"><div class="cellHighlight"></div><div class="piece dark knight"><span>&#9822;</span></div></div>
+				<div data-row="8" data-column="8" class="cell dark"><div class="cellHighlight"></div><div class="piece dark rook"><span>&#9820;</span></div></div>
+			</div>
+			<div class="row">
+				<div data-row="7" data-column="1" class="cell dark"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="2" class="cell light"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="3" class="cell dark"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="4" class="cell light"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="5" class="cell dark"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="6" class="cell light"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="7" class="cell dark"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+				<div data-row="7" data-column="8" class="cell light"><div class="cellHighlight"></div><div class="piece dark pawn"><span>&#9823;</span></div></div>
+			</div>
+			<div class="row">
+				<div data-row="6" data-column="1" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="2" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="3" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="4" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="5" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="6" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="7" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="6" data-column="8" class="cell dark"><div class="cellHighlight"></div></div>
+			</div>
+			<div class="row">
+				<div data-row="5" data-column="1" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="2" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="3" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="4" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="5" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="6" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="7" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="5" data-column="8" class="cell light"><div class="cellHighlight"></div></div>
+			</div>
+			<div class="row">
+				<div data-row="4" data-column="1" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="2" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="3" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="4" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="5" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="6" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="7" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="4" data-column="8" class="cell dark"><div class="cellHighlight"></div></div>
+			</div>
+			<div class="row">
+				<div data-row="3" data-column="1" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="2" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="3" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="4" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="5" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="6" class="cell light"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="7" class="cell dark"><div class="cellHighlight"></div></div>
+				<div data-row="3" data-column="8" class="cell light"><div class="cellHighlight"></div></div>
+			</div>
+			<div class="row">
+				<div data-row="2" data-column="1" class="cell light"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="2" class="cell dark"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="3" class="cell light"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="4" class="cell dark"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="5" class="cell light"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="6" class="cell dark"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="7" class="cell light"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+				<div data-row="2" data-column="8" class="cell dark"><div class="cellHighlight"></div><div class="piece light pawn"><span>&#9823;</span></div></div>
+			</div>
+			<div class="row">
+				<div data-row="1" data-column="1" class="cell dark"><div class="cellHighlight"></div><div class="piece light rook"><span>&#9820;</span></div></div>
+				<div data-row="1" data-column="2" class="cell light"><div class="cellHighlight"></div><div class="piece light knight"><span>&#9822;</span></div></div>
+				<div data-row="1" data-column="3" class="cell dark"><div class="cellHighlight"></div><div class="piece light bishop"><span>&#9821;</span></div></div>
+				<div data-row="1" data-column="4" class="cell light"><div class="cellHighlight"></div><div class="piece light queen"><span>&#9819;</span></div></div>
+				<div data-row="1" data-column="5" class="cell dark"><div class="cellHighlight"></div><div class="piece light king"><span>&#9818;</span></div></div>
+				<div data-row="1" data-column="6" class="cell light"><div class="cellHighlight"></div><div class="piece light bishop"><span>&#9821;</span></div></div>
+				<div data-row="1" data-column="7" class="cell dark"><div class="cellHighlight"></div><div class="piece light knight"><span>&#9822;</span></div></div>
+				<div data-row="1" data-column="8" class="cell light"><div class="cellHighlight"></div><div class="piece light rook"><span>&#9820;</span></div></div>
+			</div>
+		</div>
+		<div class="rightPanelContainer">
+			<div class="rightPanel">
+	    		<div class="button playTurnButton darkPlayTurnButton"><div class="buttonHighlight"></div><span>&#9658;</span></div>
+				<div class="button darkAutoPlayTurnButton selected"><span>&#9854;</span></div>
+				<div class="editBoardPaneContainer collapsed">
+					<div class="button openEditModeButton"><span>&#916;</span></div>
+					<div class="editBoardPane">
+						<div class="button pawnAddButton"><span>&#9823;</span></div>
+						<div class="button knightAddButton"><span>&#9822;</span></div>
+						<div class="button bishopAddButton"><span>&#9821;</span></div>
+						<div class="button rookAddButton"><span>&#9820;</span></div>
+						<div class="button queenAddButton"><span>&#9819;</span></div>
+						<div class="button pieceMoveButton"><span class="horizontalArrows">&#8596;</span><span class="verticalArrows">&#8597;</span></div>
+						<div class="button pieceDeleteButton"><span>&#8855;</span></div>
+						<div class="button closeEditModeButton"><span>-</span></div>
+					</div>
+				</div>
+				<div class="button lightAutoPlayTurnButton"><span>&#9854;</span></div>
+				<div class="button playTurnButton lightPlayTurnButton"><div class="buttonHighlight"></div><span>&#9658;</span></div>
+			</div>
+		</div>
+	</div>	
+  	</div>
+</body>
+</html>
