@@ -75,6 +75,10 @@
     .cell.inCheck {
         background-color: crimson;
    }
+   .cell.editPawnAddable:hover,
+   .cell.editKnightAddable:hover,
+   .cell.editBishopAddable:hover,
+   .cell.editRookAddable:hover,
    .cell.editQueenAddable:hover {
         opacity: 0.5;
 	   cursor: pointer;
@@ -99,7 +103,7 @@
        right: 0px;
        z-index: 100;
    }
-    .piece {
+   .piece {
         font-size: 40px;
         z-index: 1000;
         cursor: pointer;
@@ -219,6 +223,7 @@
        top: 1px;
        left: 0px;
    }
+   
    .editBoardPane {
        display: none; /* flex */
        flex-direction: column;
@@ -233,6 +238,38 @@
    }
    .editBoardPane .button {
        margin: 2px;
+   }
+   
+   /* <div class="button pieceAddSideButton"><div class="a"><div class="b"></div><div class="c"></div></div></div> */
+   
+   .editBoardPane .pieceAddSideButton .a {
+       display: flex;
+       flex-direction: row;
+       flex: 1;
+       margin: 2px;
+       border-radius: 2px;
+   }
+   
+   .editBoardPane .pieceAddSideButton .b {
+	   background-color: white;
+	   flex: 1;
+       border-top-left-radius: 2px;
+       border-bottom-left-radius: 2px;
+   }
+   
+   .editBoardPane .pieceAddSideButton .c {
+	   background-color: black;
+	   flex: 1;
+	   border-bottom-right-radius: 2px;
+	   border-top-right-radius: 2px;
+   }
+   
+   .editBoardPane[data-side='Light'] .pawnAddButton,
+   .editBoardPane[data-side='Light'] .knightAddButton,
+   .editBoardPane[data-side='Light'] .bishopAddButton,
+   .editBoardPane[data-side='Light'] .rookAddButton,
+   .editBoardPane[data-side='Light'] .queenAddButton {
+       color: white;
    }
    .button.pieceMoveButton {
        font-size: 20px;
@@ -314,10 +351,56 @@
 				UI.initializeVolatileUiEventHandlers();
 			});
 			
-			$(".editBoardPane .button").on("click", function() {
+			$(".editBoardPane .button").not(".pieceAddSideButton").on("click", function() {
 				$(".editBoardPane .button").removeClass("selected");
 				$(this).addClass("selected");
 			});
+			
+			$(".pieceAddSideButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				if ($(".editBoardPane").attr("data-side") == "Dark") {
+					$(".editBoardPane").attr("data-side", "Light");
+				} else {
+					$(".editBoardPane").attr("data-side", "Dark");
+				}
+			});
+			
+			// TODO: Consolidate!
+			// pieceAddButton
+			
+			/*
+			
+			$(".pieceAddButton").off("click").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				var map = {
+					"queenAddButton": "editQueenAddable",
+					"rookAddButton": "editRookAddable",
+					"bishopAddButton": "editBishopAddable",
+					"knightAddButton": "editKnightAddable",
+					"pawnAddButton": "editPawnAddable"
+				};
+				var keyClass = $(this).attr("class").split(/\s+/).filter(c => c.includes("AddButton"))[0];
+				var editPieceAddableClass = map[keyClass];
+				
+				$(".cell").not($(".cell").has(".piece")).addClass(editPieceAddableClass);
+				
+				$(".cell." + editPieceAddableClass).on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass(editPieceAddableClass);
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newQueen = new Queen(side, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newQueen, square);
+				});
+			});
+			
+			*/
 			
 			$(".queenAddButton").on("click", function() {
 				UI.clearBoardEditClassesAndEventHandlers();
@@ -329,11 +412,98 @@
 					
 					cell.off("click");
 					cell.removeClass("editQueenAddable");
+					//$(".cell.editQueenAddable").off("click");
+					//$(".cell.editQueenAddable").removeClass("editQueenAddable");
 					
 					var square = cell.attr("data-column") + cell.attr("data-row");
-					var newQueen = new Queen(Side.Light, square); // Side.Light?
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newQueen = new Queen(side, square); // Side.Light?
 					
 					Control.BoardEdit.addPiece(newQueen, square);
+				});
+			});
+			
+			$(".rookAddButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editRookAddable");
+				
+				$(".cell.editRookAddable").on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass("editRookAddable");
+					//$(".cell.editRookAddable").off("click");
+					//$(".cell.editRookAddable").removeClass("editRookAddable");
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newRook = new Rook(side, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newRook, square);
+				});
+			});
+			
+			$(".bishopAddButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editBishopAddable");
+				
+				$(".cell.editBishopAddable").on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass("editBishopAddable");
+					//$(".cell.editBishopAddable").off("click");
+					//$(".cell.editBishopAddable").removeClass("editBishopAddable");
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newBishop = new Bishop(side, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newBishop, square);
+				});
+			});
+			
+			$(".knightAddButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editKnightAddable");
+				
+				$(".cell.editKnightAddable").on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass("editKnightAddable");
+					//$(".cell.editKnightAddable").off("click");
+					//$(".cell.editKnightAddable").removeClass("editKnightAddable");
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newKnight = new Knight(side, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newKnight, square);
+				});
+			});
+			
+			$(".pawnAddButton").on("click", function() {
+				UI.clearBoardEditClassesAndEventHandlers();
+				
+				$(".cell").not($(".cell").has(".piece")).addClass("editPawnAddable");
+				
+				$(".cell.editPawnAddable").on("click", function() {
+					var cell = $(this);
+					
+					cell.off("click");
+					cell.removeClass("editPawnAddable");
+					//$(".cell.editPawnAddable").off("click");
+					//$(".cell.editPawnAddable").removeClass("editPawnAddable");
+					
+					var square = cell.attr("data-column") + cell.attr("data-row");
+					var side = ($(".editBoardPane").attr("data-side") == "Light" ? Side.Light : Side.Dark);
+					var newPawn = new Pawn(side, square); // Side.Light?
+					
+					Control.BoardEdit.addPiece(newPawn, square); // Control.BoardEdit.addPiece(new Pawn(Side.Light, "33"), "33");
 				});
 			});
 			
@@ -348,7 +518,7 @@
 			$(".pieceDeleteButton").on("click", function() {
 				UI.clearBoardEditClassesAndEventHandlers();
 				
-				$(".cell").has(".piece").addClass("editRemovable");
+				$(".cell").not(":has(.king)").has(".piece").addClass("editRemovable");
 				$(".cell.editRemovable").on("click", function() {
 					var cell = $(this);
 					cell.off("click");
@@ -356,6 +526,18 @@
 					var square = cell.attr("data-column") + cell.attr("data-row");
 					Control.BoardEdit.removePieceAtSquare(square);
 				});
+			});
+			
+			$(".pieceDeleteButton").on("mousedown", function() {
+				window.pieceDeleteButtonTimeout = setTimeout(function() {
+					State.currentState.pieces.getAll().filter(piece => (!(piece instanceof King))).forEach(piece => {
+						Control.BoardEdit.removePieceAtSquare(piece.square);
+					});
+				}, 1500);
+			});
+			
+			$(".pieceDeleteButton").on("mouseup", function() {
+				clearTimeout(window.pieceDeleteButtonTimeout);
 			});
 		},
 	
@@ -371,7 +553,7 @@
 			
 				var square = cell.attr("data-column") + cell.attr("data-row");
 				var piece = State.currentState.board.pieceAt(square);
-				var legalMoves = piece.getLegalMoves();
+				var legalMoves = piece.getLegalMoves().map(move => move.toSquare);
 			
 				cell.addClass("selected");
 			
@@ -446,6 +628,12 @@
 			$(".cell.editMovable").removeClass("editMovable");
 			$(".cell.editMoveTarget").removeClass("editMoveTarget");
 			$(".cell.editRemovable").removeClass("editRemovable");
+
+			$(".cell.editQueenAddable").removeClass("editQueenAddable");
+			$(".cell.editRookAddable").removeClass("editRookAddable");
+			$(".cell.editBishopAddable").removeClass("editBishopAddable");
+			$(".cell.editKnightAddable").removeClass("editKnightAddable");
+			$(".cell.editPawnAddable").removeClass("editPawnAddable");
 		},
 		
 		getCellElement: function(square) {
@@ -503,6 +691,8 @@
 				spanElement.html("&#9821;");
 			} else if (newPiece instanceof Knight) {
 				spanElement.html("&#9822;");
+			} else if (newPiece instanceof Pawn) {
+				spanElement.html("&#9823;");
 			}
 		
 			return newPieceElement;
@@ -633,7 +823,6 @@
 			var transitionStatePiece = transitionState.board.pieceAt(piece.square);
 			
 			transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
-			//transitionStatePiece.moveTo(toSquare);
 			
 			var newState = transitionState;
 			State.currentState = newState;
@@ -643,38 +832,39 @@
 			UI.movePieceElement(fromSquare, toSquare);
 			UI.specialUpdateAllPieceElements(newState.board); 
 			
-			var oppositeSide = Side.opposite(transitionStatePiece.side);
+			var oppositeSide = transitionStatePiece.side.opposite;
+			//var oppositeSide = Side.opposite(transitionStatePiece.side);
 			if (newState.isSideInCheck(oppositeSide)) {
 				var otherSidesKing = newState.pieces.getKingOfSide(oppositeSide);
 				UI.getCellElement(otherSidesKing.square).addClass("inCheck");
 			}
 			
 			if ("you really want to check if this side is in check" != "") {
-				if (Util.isSideInCheck(newState, transitionStatePiece.side)) {
+				if (newState.isSideInCheck(transitionStatePiece.side)) {
 					var king = newState.pieces.getKingOfSide(transitionStatePiece.side);
 					UI.getCellElement(king.square).addClass("inCheck");
 				}
 			}
 			
+			MoveHistory.registerMove(transitionStatePiece, fromSquare, toSquare, null, null, initialState, newState); // TODO: Maybe populate better.
 			
-			MoveHistory.registerMove(transitionStatePiece, fromSquare, toSquare, initialState, newState);
-			
-			if (newState.isSideInCheck(oppositeSide) && newState.isSideInCheckMate(oppositeSide)) { // TODO: This is suspect.  isSideInCheckMate should include isSideInCheck.
-				
-				console.log("CHECKMATE!!!")
-				
+			if (newState.isSideInCheckMate(oppositeSide)) {
+				console.log("CHECKMATE!!!");
 				return;
-			} 
-			// Stalemate?
-			
+			} else if (newState.isSideInStaleMate(oppositeSide)) {
+				console.log("STALEMATE!!!");
+				return;
+			}
+
 			UI.updateForSidesTurn(piece.side.opposite);
 			
 			// Setup other side's next turn.
-			var otherSide = Side.opposite(piece.side);
+			var otherSide = piece.side.opposite;
+			//var otherSide = Side.opposite(piece.side);
 			if (Control.shouldSideRespondeAutomatically(otherSide)) {
 				setTimeout(function() {
 					Computation.makeComputedMove(otherSide);
-				}, 750);
+				}, 750); // Was 750
 			}
 		},
 		
@@ -712,15 +902,17 @@
 				
 		 	    State.currentState.board.addPiece(piece, square);
 				State.currentState.pieces.add(piece);
+				piece.state = State.currentState;
 				
 				UI.addPieceElement(square, piece);
 			}
 		}
 	};
 	
-	
+	/************************* Board **************************/
 	
 	/*
+	
 	Squares will be programatically represented by a string of two characters
 	with the first character representing the number of the column (1-8) and the 
 	second character representing the number of the row (1-8).  Ex. "38"
@@ -735,698 +927,6 @@
 	[11][21][31][41][51][61][71][81]
 	
 	*/
-	
-	
-	////////// Piece //////////
-	
-	var Side = {
-		Light: {name: "Light", direction: 1},
-		Dark: {name: "Dark", direction: -1},
-		opposite: function(side) {return (side == Side.Light ? Side.Dark : Side.Light)}
-	}
-	Side.Light.opposite = Side.Dark;
-	Side.Dark.opposite = Side.Light;
-	
-	class Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			this.side = side;
-			this.square = square;
-			this.state = state;
-			this.id = id || square;
-			this.hasNeverMoved = (hasNeverMoved != null ? hasNeverMoved : true);
-			
-			this.legalMoves = null;
-		}
-		
-		getPosition() {
-			return Position.from(this.square);
-		}
-		
-		getLegalMoves() {
-			if (this.legalMoves == null) {
-				this.legalMoves = this.filterOutMovesThatResultInCheck(this.getRawLegalMoves());
-			}
-			return this.legalMoves	
-		}
-		
-		refresh() {
-			this.legalMoves = null;
-		}
-		
-		moveTo(newSquare) {
-			if (!this.getRawLegalMoves().includes(newSquare)) {
-				if (!this instanceof King && this.isCastling) {
-					throw "Attempt to move piece ilegally.";
-				}
-			}
-			var oldSquare = this.square;
-			var pieceAtTargetPosition = this.state.board.pieceAt(newSquare);
-			var pieceCaptured = (pieceAtTargetPosition != null);
-			
-			// Memory
-			if (pieceCaptured) {
-				this.state.pieces.remove(pieceAtTargetPosition);
-			}
-			this.state.board.movePiece(this, oldSquare, newSquare);
-			
-			this.square = newSquare;
-			this.hasNeverMoved = false;
-		}
-		
-		isOpponent(otherPiece) {
-			return (this.side != otherPiece.side);
-		}
-		
-		/* --------- Protected (helper) ---------- */
-		
-		addDiagonals(nextPositionList) {
-			this.addDirection(nextPositionList, -1, 1); // Up Left
-			this.addDirection(nextPositionList, -1, -1); // Down Left
-			this.addDirection(nextPositionList, 1, 1); // Up Right
-			this.addDirection(nextPositionList, 1, -1); // Down Right
-		}
-		
-		addOrthogonals(nextPositionList) {
-			this.addDirection(nextPositionList, 0, 1); // Up
-			this.addDirection(nextPositionList, 0, -1); // Down
-			this.addDirection(nextPositionList, 1, 0); // Right
-			this.addDirection(nextPositionList, -1, 0); // Left
-		}
-		
-		addDirection(nextPositionList, xDirection, yDirection) {
-			var pieceFound = false;
-			var column = this.getPosition().getColumn() + xDirection;
-			var row = this.getPosition().getRow() + yDirection;
-			var isColumnValid = (xDirection == 0 ? function(){return true} : (xDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
-			var isRowValid = (yDirection == 0 ? function(){return true} : (yDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
-			while (!pieceFound && isColumnValid(column) && isRowValid(row)) {
-				pieceFound = this.addToListIfNotSameSide(nextPositionList, column, row);
-				column = column + xDirection;
-				row = row + yDirection;
-			}
-		}
-		
-		addToListIfNotSameSide(nextPositionList, column, row) {
-			var pieceFound = false;
-			var nextPosition = Position.fromPoint(column, row);
-			var pieceAtTargetPosition = this.state.board.pieceAt(nextPosition.square);
-			if (pieceAtTargetPosition == null) {
-				nextPositionList.push(nextPosition);
-			} else {
-				pieceFound = true;
-				if (this.isOpponent(pieceAtTargetPosition)) {
-					nextPositionList.push(nextPosition);
-				}
-			}
-			return pieceFound;
-		}
-		
-		addToLegalMovesIfNotSameSide(legalMoves, nextPositionList) {
-			for (var i = 0; i < nextPositionList.length; i++) {
-				var nextPosition = nextPositionList[i];
-				if (nextPosition != null && nextPosition.isValid()) {
-					var pieceAtTargetPosition = this.state.board.pieceAt(nextPosition.square);
-					if (pieceAtTargetPosition == null || this.isOpponent(pieceAtTargetPosition)) {
-						legalMoves.push(nextPosition.square);
-					}
-				}
-			}	
-		}
-		
-		filterOutMovesThatResultInCheck(legalMoves) {
-			var result = [];
-			for (var i = 0; i < legalMoves.length; i++) {
-				var move = legalMoves[i];
-				
-				var fromSquare = this.square;
-				var toSquare = move;
-				var initialState = this.state;
-				var transitionState = initialState.clone();
-				var transitionStatePiece = transitionState.board.pieceAt(this.square);
-				
-				transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
-			
-				var newState = transitionState;
-				
-				if (!newState.isSideInCheck(this.side)) {
-					result.push(move);
-				}
-			}
-			return result;
-		}
-	}
-	
-	////////// Pawn //////////
-	class Pawn extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "Pawn";
-			this.points = 1;
-		}
-		
-		clone() {
-			return new Pawn(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			
-			if (this.getPosition().getRow() == 0 || this.getPosition().getRow() == 7) {
-				return [];
-			}
-			
-			var canMoveOneForward = false;
-			
-			// Check if move one forward available.
-			var targetPosition = this.getPosition().diff(0, this.side.direction * 1);
-			if (this.state.board.pieceAt(targetPosition.square) == null) {
-				legalMoves.push(targetPosition.square);
-				canMoveOneForward = true;
-			}
-			
-			// Check if move two forward available.
-			if (this.hasNeverMoved && canMoveOneForward) {
-				var targetPosition = this.getPosition().diff(0, this.side.direction * 2);
-				if (this.state.board.pieceAt(targetPosition.square) == null) {
-					legalMoves.push(targetPosition.square);
-				}
-			}
-			
-			// Check if left diagonal attack available.
-			if (this.getPosition().getColumn() > 0) {
-				var targetPosition = this.getPosition().diff(-1, this.side.direction * 1);
-				var pieceAtTargetPosition = this.state.board.pieceAt(targetPosition.square);
-				if (pieceAtTargetPosition != null && this.isOpponent(pieceAtTargetPosition)) {
-					legalMoves.push(targetPosition.square);
-				}
-			}
-			
-			// Check if right diagonal attack available.
-			if (this.getPosition().getColumn() < 7) {
-				var targetPosition = this.getPosition().diff(1, this.side.direction * 1);
-				var pieceAtTargetPosition = this.state.board.pieceAt(targetPosition.square);
-				if (pieceAtTargetPosition != null && this.isOpponent(pieceAtTargetPosition)) {
-					legalMoves.push(targetPosition.square);
-				}
-			}
-			
-			// TODO: Fix!
-			
-			
-			// Check for en passant on left.
-			if (this.getPosition().getColumn() > 0) {
-				var opponentPawnPosition = this.getPosition().diff(-1, 0);
-				var pieceAtTargetPosition = this.state.board.pieceAt(opponentPawnPosition.square);
-				if (pieceAtTargetPosition instanceof Pawn && this.isOpponent(pieceAtTargetPosition)) { // Square directly to left is occupied by enemy pawn.
-					var lastMove = this.state.move;
-					//var lastMove = MoveHistory.getLastMove();
-					if (lastMove.toSquare == opponentPawnPosition.square) { // Last move was made by this pawn.
-						if (Math.abs(Position.from(lastMove.toSquare).getRow() - Position.from(lastMove.fromSquare).getRow()) == 2) { // This pawn's last move was an advance of two squares.
-							var targetPosition = this.getPosition().diff(-1, this.side.direction * 1);
-							legalMoves.push(targetPosition.square);
-						}
-					}
-				}
-			}
-			
-			// Check for en passant on right.
-			if (this.getPosition().getColumn() < 7) {
-				var opponentPawnPosition = this.getPosition().diff(1, 0);
-				var pieceAtTargetPosition = this.state.board.pieceAt(opponentPawnPosition.square);
-				if (pieceAtTargetPosition instanceof Pawn && this.isOpponent(pieceAtTargetPosition)) { // Square directly to right is occupied by enemy pawn.
-					var lastMove = this.state.move;
-					//var lastMove = MoveHistory.getLastMove();
-					if (lastMove.toSquare == opponentPawnPosition.square) { // Last move was made by this pawn.
-						if (Math.abs(Position.from(lastMove.toSquare).getRow() - Position.from(lastMove.fromSquare).getRow()) == 2) { // This pawn's right move was an advance of two squares.
-							var targetPosition = this.getPosition().diff(1, this.side.direction * 1);
-							legalMoves.push(targetPosition.square);
-						}
-					}
-				}
-			}
-			
-			
-			return legalMoves;
-		}
-		
-		moveTo(newSquare) {
-			if (Position.from(this.square).getColumn() != Position.from(newSquare).getColumn() && this.state.board.pieceAt(newSquare) == null) { // En passant.
-				var xDiff = Position.from(newSquare).getColumn() - Position.from(this.square).getColumn();
-				var opponentPiecePosition = this.getPosition().diff(xDiff, 0);
-				var opponentPiece = this.state.board.pieceAt(opponentPiecePosition.square);
-				this.state.board.removePiece(opponentPiece, opponentPiece.square);
-				this.state.pieces.remove(opponentPiece);
-				
-				//removePieceElement(opponentPiece.square);
-			}
-			super.moveTo(newSquare); // Any case.
-			if (Position.from(newSquare).getRow() == 0 || Position.from(newSquare).getRow() == 7) { // Promotion.
-				// Replace pawn with promotion piece (only queen for now).
-				var newPiece = new Queen(this.side, newSquare, this.state);
-				this.state.board.promotePiece(this, newPiece, newSquare);
-				this.state.pieces.remove(this);
-				this.state.pieces.add(newPiece);
-				
-				//replacePieceElement(newSquare, newPiece);
-				
-				//this.checkIfOtherSideInCheck();
-			}
-		}
-	}
-	
-	////////// Knight //////////
-	class Knight extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "Knight";
-			this.points = 3;
-		}
-		
-		clone() {
-			return new Knight(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			var nextPositionList = [
-				this.getPosition().diff(-2, -1),
-				this.getPosition().diff(-2, 1),
-				this.getPosition().diff(-1, -2),
-				this.getPosition().diff(-1, 2),
-				this.getPosition().diff(1, -2),
-				this.getPosition().diff(1, 2),
-				this.getPosition().diff(2, -1),
-				this.getPosition().diff(2, 1)
-			];
-			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
-			return legalMoves;
-		}
-	}
-	
-	////////// Bishop //////////
-	class Bishop extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "Bishop";
-			this.points = 3;
-		}
-		
-		clone() {
-			return new Bishop(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			var nextPositionList = [];
-			this.addDiagonals(nextPositionList);
-			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
-			return legalMoves;
-		}
-	}
-	
-	////////// Rook //////////
-	class Rook extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "Rook";
-			this.points = 5;
-		}
-		
-		clone() {
-			return new Rook(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			var nextPositionList = [];
-			this.addOrthogonals(nextPositionList);
-			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
-			return legalMoves;
-		}
-	}
-	
-	////////// Queen //////////
-	class Queen extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "Queen";
-			this.points = 9;
-		}
-		
-		clone() {
-			return new Queen(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			var nextPositionList = [];
-			this.addDiagonals(nextPositionList);
-			this.addOrthogonals(nextPositionList);
-			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
-			return legalMoves;
-		}
-	}
-	
-	////////// King //////////
-	class King extends Piece {
-		constructor(side, square, state, id, hasNeverMoved) {
-			super(side, square, state, id, hasNeverMoved);
-			this.name = "King";
-			this.isCastling = false;
-		}
-		
-		clone() {
-			return new King(this.side, this.square, this.state, this.id, this.hasNeverMoved);
-		}
-		
-		getRawLegalMoves() {
-			var legalMoves = [];
-			var nextPositionList = [
-				this.getPosition().diff(-1, -1),
-				this.getPosition().diff(-1, 0),
-				this.getPosition().diff(-1, 1),
-				this.getPosition().diff(0, -1),
-				this.getPosition().diff(0, 1),
-				this.getPosition().diff(1, -1),
-				this.getPosition().diff(1, 0),
-				this.getPosition().diff(1, 1)
-			];
-			this.addToLegalMovesIfNotSameSide(legalMoves, nextPositionList);
-			
-			// Check King-side castle.
-			// TODO: Check that king does not moved through attacked square.
-			if (this.hasNeverMoved) { // King has never moved.
-				var row = this.getPosition().getRow();
-				var kingsRookPosition = Position.fromPoint(7, row);
-				var kingsRook = this.state.board.pieceAt(kingsRookPosition.square);
-				if (kingsRook != null && kingsRook.hasNeverMoved) { // King's Rook has never moved.
-					var clear = true;
-					for (var x = 5; x <= 6; x++) {
-						var probePosition = Position.fromPoint(x, row);
-						var probePiece = this.state.board.pieceAt(probePosition.square);
-						if (probePiece != null) {
-							clear = false;
-						}
-					}
-					if (clear) { // Space between king and rook clear. 
-						// Check if king in check or if middle square attackable.
-						var middleSquare = Position.fromPoint(5, row).square;
-						var oppositeSideLegalMoves = Util.getAllNonKingRawLegalMovesOfSide(this.state, this.side.opposite);
-						if (!oppositeSideLegalMoves.includes(this.square) && !oppositeSideLegalMoves.includes(middleSquare)) {
-							var targetPosition = Position.fromPoint(6, row);
-							legalMoves.push(targetPosition.square);
-						}
-					}
-				}
-				
-				
-				// Check Queen-side castle.
-				var queensRookPosition = Position.fromPoint(0, row);
-				var queensRook = this.state.board.pieceAt(queensRookPosition.square);
-				if (queensRook != null && queensRook.hasNeverMoved) { // Queen's Rook has never moved.
-					var clear = true;
-					for (var x = 1; x <= 3; x++) {
-						var probePosition = Position.fromPoint(x, row);
-						var probePiece = this.state.board.pieceAt(probePosition.square);
-						if (probePiece != null) {
-							clear = false;
-						}
-					}
-					if (clear) { // Space between king and rook clear. 
-						// Check if king in check or if middle square attackable.
-						var middleSquare = Position.fromPoint(3, row).square;
-						var oppositeSideLegalMoves = Util.getAllNonKingRawLegalMovesOfSide(this.state, this.side.opposite);
-						if (!oppositeSideLegalMoves.includes(this.square) && !oppositeSideLegalMoves.includes(middleSquare)) {
-							var targetPosition = Position.fromPoint(2, row);
-							legalMoves.push(targetPosition.square);
-						}
-					}
-				}
-			}
-			
-			return legalMoves;
-		}
-		
-		moveTo(newSquare) {
-			var row = this.getPosition().getRow();
-			if (this.hasNeverMoved && newSquare == Position.fromPoint(6, row).square) { // King-side Castle.
-				this.isCastling = true;
-				
-				var kingsRookPosition = Position.fromPoint(7, row);
-				var kingsRook = this.state.board.pieceAt(kingsRookPosition.square);
-				var newKingsRookPosition = Position.fromPoint(5, row);
-				
-				// Action!
-				kingsRook.moveTo(newKingsRookPosition.square);
-				//movePieceElement(kingsRookPosition.square, newKingsRookPosition.square);
-			} else if (this.hasNeverMoved && newSquare == Position.fromPoint(2, row).square) { // Queen-side Castle.
-				this.isCastling = true;
-				
-				var queensRookPosition = Position.fromPoint(0, row);
-				var queensRook = this.state.board.pieceAt(queensRookPosition.square);
-				var newQueensRookPosition = Position.fromPoint(3, row);
-				
-				// Action!
-				queensRook.moveTo(newQueensRookPosition.square);
-				//movePieceElement(queensRookPosition.square, newQueensRookPosition.square);
-			}
-			super.moveTo(newSquare); // Any case.
-			
-			this.isCastling = false;
-		}
-	}
-	
-	/************************* Position **************************/
-	/*
-	Position is abstract while Board is concrete.  
-	A Position need not exist for a square on the board to exist.
-	*/
-	
-	function Position(square) {
-		this.square = square;
-		
-		this.diff = function(xDiff, yDiff) {
-			return Position.from((this.getColumn() + 1 + xDiff).toString() + (this.getRow() + 1 + yDiff).toString());
-		}
-		
-		this.getColumn = function() {
-			return Number.parseInt(this.square[0]) - 1; // Number
-		}
-		
-		this.getRow = function() {
-			return Number.parseInt(this.square[1]) - 1; // Number
-		}
-		
-		this.isValid = function() {
-			return (this.getColumn() >= 0 && this.getRow() >= 0 && this.getColumn() <= 7 && this.getRow() <= 7);
-		}
-	}
-	
-	Position.from = function(square) {
-		if (square == null) {
-			return null;
-		}
-		var newPosition = new Position(square);
-		if (square.length > 2 || !newPosition.isValid()) {
-			return null;
-		}
-		return newPosition;
-	}
-	
-	Position.fromPoint = function(column, row) {
-		return Position.from((column + 1).toString() + (row + 1).toString());
-	}
-	
-	/************************* --- **************************/
-	
-	var Util = {
-		getAllRawLegalMovesOfSide: function(state, side) {
-			var allLegalMoves = [];
-			
-			var allPiecesOfSide = state.pieces.getAllOfSide(side);
-			for (var i = 0; i < allPiecesOfSide.length; i++) {
-				var piece = allPiecesOfSide[i];
-				var allLegalMovesOfPiece = piece.getRawLegalMoves();
-				allLegalMoves = allLegalMoves.concat(allLegalMovesOfPiece);
-			}
-			
-			return allLegalMoves;
-		},
-		
-		getAllNonKingRawLegalMovesOfSide: function(state, side) {
-			var legalMoves = [];
-			
-			var allPiecesOfSide = state.pieces.getAllOfSide(side);
-			for (var i = 0; i < allPiecesOfSide.length; i++) {
-				var piece = allPiecesOfSide[i];
-				if (!(piece instanceof King)) {
-					var allLegalMovesOfPiece = piece.getRawLegalMoves();
-					legalMoves = legalMoves.concat(allLegalMovesOfPiece);
-				}
-			}
-			
-			return legalMoves;
-		},
-		
-		getAllLegalMovesOfSide: function(state, side) {
-			var allLegalMoves = [];
-			
-			var allPiecesOfSide = state.pieces.getAllOfSide(side);
-			for (var i = 0; i < allPiecesOfSide.length; i++) {
-				var piece = allPiecesOfSide[i];
-				var allLegalMovesOfPiece = piece.getLegalMoves();
-				allLegalMoves = allLegalMoves.concat(allLegalMovesOfPiece);
-			}
-			
-			return allLegalMoves;
-		},
-		
-		isSideInCheck: function(state, side) {
-			var king = state.pieces.getKingOfSide(side);
-			if (king == null) {
-				return false;
-			}
-			var otherSidesMoves = Util.getAllRawLegalMovesOfSide(state, Side.opposite(side));
-			for (var i = 0; i < otherSidesMoves.length; i++) {
-				var attackedSquare = otherSidesMoves[i];
-				if (attackedSquare == king.square) {
-					return true;
-				}
-			}
-			return false;
-		},
-		
-		isSideInCheckMate: function(state, side) {
-			return (Util.isSideInCheck(state, side) && Util.getAllLegalMovesOfSide(state, side).length == 0);
-		}
-		
-	}
-	
-	/************************* Move History **************************/
-	
-	var MoveHistory = {
-		stack: [],
-		registerMove: function(piece, fromSquare, toSquare, initialState, finalState) {
-			MoveHistory.stack.push(new Move(piece, fromSquare, toSquare, initialState, finalState));
-		},
-		getLastMove: function() {
-			return MoveHistory.stack[MoveHistory.stack.length - 1];
-		},
-		clear: function() {
-			MoveHistory.stack = [];
-		}
-	};
-	
-	class Move {
-		constructor(piece, fromSquare, toSquare, initialState, finalState) {
-			this.piece = piece;
-			this.fromSquare = fromSquare;
-			this.toSquare = toSquare;
-			this.initialState = initialState;
-			this.finalState = finalState;
-		}
-	}
-	
-	/************************* State **************************/
-	
-	class State {
-		constructor(pieces) {
-			this.pieces = new Pieces(pieces);
-			this.board = new Board(pieces);
-			this.score = null;
-			
-			this.move = null;
-			this.isLightSideInCheck = null;
-			this.isDarkSideInCheck = null;
-		}
-		
-		clone() {
-			var newPieces = [];
-			var pieces = this.pieces.getAll();
-			for (var i = 0; i < pieces.length; i++) {
-				var piece = pieces[i];
-				var newPiece = piece.clone();
-				newPieces.push(newPiece);
-			}
-			var newState = new State(newPieces);
-			for (var i = 0; i < newPieces.length; i++) {
-				var newPiece = newPieces[i];
-				newPiece.state = newState;
-			}
-			return newState;
-		}
-		
-		isSideInCheck(side) {
-			if (side == Side.Light) {
-				if (this.isLightSideInCheck == null) {
-					this.isLightSideInCheck = Util.isSideInCheck(this, side);
-				}
-				return this.isLightSideInCheck;
-			} else if (side == Side.Dark) {
-				if (this.isDarkSideInCheck == null) {
-					this.isDarkSideInCheck = Util.isSideInCheck(this, side);
-				}
-				return this.isDarkSideInCheck;
-			}
-			return null;
-		}
-		
-		isSideInCheckMate(side) {
-			return Util.isSideInCheckMate(this, side);
-		}
-		
-		transition(piece, fromSquare, toSquare, initialState) {
-			this.move = new Move(piece, fromSquare, toSquare, initialState, this);
-			
-			piece.moveTo(toSquare);
-			
-			
-			// Post-move analysis.
-			this.isSideInCheck(piece.side.opposite);
-			
-			this.score = new Score(this);
-		}
-		
-		didMoveResultInCapture() {
-			return this.initialState
-		}
-	}
-	
-	State.currentState = null;
-	
-	/************************* Score **************************/
-	
-	class Score {
-		constructor(state) {
-			this.state = state;
-			
-			this.lightPoints = this.calculatePointsForSide(Side.Light);
-			this.darkPoints = this.calculatePointsForSide(Side.Dark);
-		}
-		
-		getPointsForSide(side) {
-			if (side == Side.Light) {
-				return this.lightPoints;
-			} else if (side == Side.Dark) {
-				return this.darkPoints;
-			}
-			return null;
-		}
-		
-		calculatePointsForSide(side) {
-			var points = 39;
-			var piecesOfOtherSide = this.state.pieces.getAllOfSide(side.opposite);
-			for (var i = 0; i < piecesOfOtherSide.length; i++) {
-				var piece = piecesOfOtherSide[i];
-				if (!(piece instanceof King)) {
-					points -= piece.points;
-				}
-			}
-			return points;
-		}
-	}
-	
-	/************************* Board **************************/
 	
 	class Board {
 		constructor(pieces) {
@@ -1451,19 +951,8 @@
 				var rowString = (row + 1) + " ";
 				for (var column = 0; column <= 7; column++) {
 					var piece = this.board[column][row];
-					var contentCharacter = " ";
-					if (piece != null) {
-						contentCharacter = piece.constructor.name.charAt(0);
-						if (piece instanceof Knight) {
-							contentCharacter = "N";
-						}
-						if (piece.side == Side.Light) {
-							contentCharacter = contentCharacter.toUpperCase();
-						} else if (piece.side == Side.Dark) {
-							contentCharacter = contentCharacter.toLowerCase();
-						}
-					}
-					rowString += "[" + contentCharacter + "]";
+					var character = (piece != null ? piece.getCharacter() : " ");
+					rowString += "[" + character + "]";
 				}
 				console.log(rowString);
 			}
@@ -1555,12 +1044,1452 @@
 		}
 	}
 	
+	/************************* Position **************************/
+	
+	/*
+	Position is abstract while Board is concrete.  
+	A Position need not exist for a square on the board to exist.
+	*/
+	
+	// TODO: Improve!
+	// TODO: Position vs Square
+	
+	function Position(square) {
+		this.square = square;
+		
+		this.diff = function(xDiff, yDiff) {
+			return Position.from((this.getColumn() + 1 + xDiff).toString() + (this.getRow() + 1 + yDiff).toString()); // TODO: Use Position.fromPoint
+		}
+		
+		this.getColumn = function() {
+			return Number.parseInt(this.square[0]) - 1; // Number
+		}
+		
+		this.getRow = function() {
+			return Number.parseInt(this.square[1]) - 1; // Number
+		}
+		
+		this.isValid = function() {
+			return (this.getColumn() >= 0 && this.getRow() >= 0 && this.getColumn() <= 7 && this.getRow() <= 7);
+		}
+	}
+	
+	// TODO: Clean this up!
+	Position.from = function(square) {
+		if (square == null) { // TODO: || square.length != 2
+			return null;
+		}
+		
+		if (square.length != 2) { // TODO: Something else... this is hacky!
+			square = "00";
+		}
+		
+		var newPosition = new Position(square);
+		
+		if (square.length > 2) {
+		//if (square.length > 2 || !newPosition.isValid()) { // TODO: Should this isValid check be here?
+			return null;
+		}
+		return newPosition;
+	}
+	
+	Position.getSquareFromPoint = function(column, row) {
+		return (column + 1).toString() + (row + 1).toString();
+	}
+	
+	Position.fromPoint = function(column, row) {
+		return Position.from(Position.getSquareFromPoint(column, row));
+	}
+	
+	/************************* Move **************************/
+	
+	// TODO: It does not seem necessary to store finalState! It does not seem to be used. Probably should remove this (or at least let it be null).
+	// TODO: Possibly store metadata about move, like doesResultInCapture, doesResultInCheck, etc...
+	// TODO: How to take "double move" (castle) into account? (coincidentMove)
+	// TODO: isEnPassant, isCastle, isPromotion (promotion to what?)
+	
+	class Move {
+		constructor(piece, fromSquare, toSquare, moveType, affectedPiece, initialState, finalState) {
+			this.piece = piece;
+			this.fromSquare = fromSquare;
+			this.toSquare = toSquare;
+			this.moveType = moveType;
+			this.affectedPiece = affectedPiece;
+			this.initialState = initialState;
+			this.finalState = finalState;
+		}
+		
+		toString() {
+			return this.piece.getCharacter() + " " + this.fromSquare + " -> " + this.toSquare;
+		}
+		
+		resultsInCapture() {
+			return (this.moveType == MoveType.Attacking);
+		}
+	}
+	
+	var MoveType = {
+		Neutral: {name: "Neutral", isLegalMove: true},
+		Attacking: {name: "Attacking", isLegalMove: true},
+		Protecting: {name: "Protecting", isLegalMove: false},
+		Illegal: {name: "Illegal", isLegalMove: false}
+	}
+	
+	var SpecialMove = {
+		Castle: {name: "Castle"},
+		EnPassant: {name: "EnPassant"},
+		Promotion: {name: "Promotion"}
+	}
+	
+	/************************* Side **************************/
+	
+	var Side = {
+		Light: {name: "Light", direction: 1, homeRow: 0, homePawnRow: 1},
+		Dark: {name: "Dark", direction: -1, homeRow: 7, homePawnRow: 6}
+		//,
+		//opposite: function(side) {return (side == Side.Light ? Side.Dark : Side.Light)}
+	}
+	Side.Light.opposite = Side.Dark;
+	Side.Dark.opposite = Side.Light;
+	
+	/************************* Piece **************************/
+	
+	// TODO: In addition to determining legal moves of the piece, when executing the following methods,
+	//         also determine attacking moves and protecting moves. Basically, when checking whether or not
+	//         a piece is in the probe position, if the piece is of the oppisite side, it is an attacking move,
+	//         and if the piece is of the same side, then it is a protecting move.
+	//         Important note: Make sure all legal moves, attacking moves, and protecting moves are filtered
+	//         so that if the move results in check, it is not included! (filterOutMovesThatResultInCheck)
+	// - Pawn.getRawLegalMoves
+	// - King.getRawLegalMoves (castle)
+	// - addToListIfNotSameSide
+	// - addToLegalMovesIfNotSameSide
+	
+	// TODO: Possibly also determine: Is king in check? (Basically, if attacked piece is king of opposite side, then opposite side is in check.)
+	// TODO: Possibly also determine: Is king in checkmate?
+	// TODO: Possibly also determine: Is king in stalemate?
+	// TODO: Possibly also tabulate: attacked squares
+	
+	// TODO: Determine moves such that move is the 'Move' object and not only the 'to square'.
+	
+	class Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			this.side = side;
+			this.square = square;
+			this.state = state;
+			this.id = id || square;
+			this.hasNeverMoved = (hasNeverMoved != null ? hasNeverMoved : true);
+			
+			this.rawLegalMoves = null;
+			this.rawAttackingMoves = null;
+			this.rawProtectingMoves = null;
+			
+			//this.blockedCheckingMove = null;
+		
+			this.blockedAttackingMoves = null;
+			this.blockedCheckingMove = null;
+			this.discoverableAttackingMoves = null;
+			this.discoverableCheckingMove = null;
+			this.discoverableProtectingMoves = null;
+			this.shadowAttackingMoves = null;
+			this.shadowProtectingMoves = null;
+		
+			this.blockingDiscoverableCheckMove = null;
+			
+			
+			this.legalMoves = null;
+			this.attackingMoves = null;
+		}
+		
+		getCharacter() {
+			var character = ((this instanceof Knight) ? "N" : this.name.charAt(0));
+			return ((this.side == Side.Light) ? character.toUpperCase() : character.toLowerCase());
+		}
+		
+		toString() {
+			return this.name + " (" + this.side.name + ") at '" + this.square + "'";
+		}
+		
+		getPosition() {
+			return Position.from(this.square);
+			
+			// Warning Note: Caching this seems to have created problems (especially with en passant).
+			//if (this.position == null) {
+			//	this.position = Position.from(this.square);
+			//}
+			//return this.position;
+		}
+		
+		getLegalMoves() {
+			if (this.legalMoves == null) {
+				this.legalMoves = this.state.moves.getLegalMovesOfPiece(this);
+			}
+			return this.legalMoves;
+		}
+		
+		getAttackingMoves() {
+			if (this.attackingMoves == null) {
+				this.attackingMoves = this.state.moves.getAttackingMovesOfPiece(this);
+			}
+			return this.attackingMoves;
+		}
+		
+		getRawLegalMoves() {
+			if (this.rawLegalMoves == null) {
+				this.initializeAndDelineateRawMoves();
+			}
+			return this.rawLegalMoves;
+		}
+		
+		getRawAttackingMoves() {
+			if (this.rawAttackingMoves == null) {
+				this.initializeAndDelineateRawMoves();
+			}
+			return this.rawAttackingMoves;
+		}
+		
+		getRawProtectingMoves() {
+			if (this.rawProtectingMoves == null) {
+				this.initializeAndDelineateRawMoves();
+			}
+			return this.rawProtectingMoves;
+		}
+		
+		initializeAndDelineateRawMoves() {
+			this.initializeMoves();
+			this.delineateRawMoves();
+		}
+		
+		initializeMoves() {
+			this.rawLegalMoves = [];
+			this.rawAttackingMoves = [];
+			this.rawProtectingMoves = [];
+			
+			this.blockedAttackingMoves = [];
+			this.discoverableAttackingMoves = [];
+			this.discoverableCheckingMove = [];
+			this.discoverableProtectingMoves = [];
+			this.shadowAttackingMoves = [];
+			this.shadowProtectingMoves = [];
+		}
+		
+		moveTo(newSquare) {
+			var oldSquare = this.square;
+			var pieceAtTargetPosition = this.state.board.pieceAt(newSquare);
+			var pieceCaptured = (pieceAtTargetPosition != null);
+			
+			if (pieceCaptured) {
+				this.state.pieces.remove(pieceAtTargetPosition);
+			}
+			this.state.board.movePiece(this, oldSquare, newSquare);
+			
+			this.square = newSquare;
+			this.hasNeverMoved = false;
+		}
+		
+		isOpponent(otherPiece) {
+			return (this.side != otherPiece.side);
+		}
+		
+		/* --------- Protected (helper) ---------- */
+		
+		delineateDiagonalMoves() {
+			this.delineateDirectionalMoves(-1, 1); // Up Left
+			this.delineateDirectionalMoves(-1, -1); // Down Left
+			this.delineateDirectionalMoves(1, 1); // Up Right
+			this.delineateDirectionalMoves(1, -1); // Down Right
+		}
+		
+		delineateOrthogonalMoves() {
+			this.delineateDirectionalMoves(0, 1); // Up
+			this.delineateDirectionalMoves(0, -1); // Down
+			this.delineateDirectionalMoves(1, 0); // Right
+			this.delineateDirectionalMoves(-1, 0); // Left
+		}
+		
+		delineateDirectionalMoves(xDirection, yDirection) {
+			var column = this.getPosition().getColumn() + xDirection;
+			var row = this.getPosition().getRow() + yDirection;
+			var isColumnValid = (xDirection == 0 ? function(){return true} : (xDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
+			var isRowValid = (yDirection == 0 ? function(){return true} : (yDirection > 0 ? function(x){return x < 8} : function(x){return x >= 0}));
+			while (isColumnValid(column) && isRowValid(row)) {
+				var targetSquare = Position.getSquareFromPoint(column, row);
+				var move = this.delineateSingleMove(targetSquare, true);
+				if (move.moveType != MoveType.Neutral) {
+					
+					if (move.moveType == MoveType.Attacking) {
+						this.delineateBlockedCheckingMove(xDirection, yDirection, column + xDirection, row + yDirection, isColumnValid, isRowValid, move);
+					}
+					
+					//this.delineateBlockedMoves(xDirection, yDirection, column + xDirection, row + yDirection, isColumnValid, isRowValid, move.affectedPiece);
+					
+					return;
+				}
+				column += xDirection;
+				row += yDirection;
+			}
+		}
+		
+		delineateBlockedCheckingMove(xDirection, yDirection, column, row, isColumnValid, isRowValid, moveThatAttacksBlockingPiece) { // Possibly just use Util.isClearBetweenTwoPieces(piece1, piece2)
+			var opponentKing = this.state.pieces.getKingOfSide(this.side.opposite);
+			if (opponentKing == null) {
+				console.log("King is null which should not be possible!"); // TODO: Correct whatever issue is causing this.
+				this.state.board.printBoard();
+			}
+			if (!((Util.isDirectionOrthogonal(xDirection, yDirection) && Util.arePiecesOnSameOrthogonal(this, opponentKing))
+					|| (Util.isDirectionDiagonal(xDirection, yDirection) && Util.arePiecesOnSameDiagonal(this, opponentKing)))) {
+				return;
+			}
+			while (isColumnValid(column) && isRowValid(row)) {
+				var probeSquare = Position.getSquareFromPoint(column, row);
+				var probePiece = this.state.board.pieceAt(probeSquare);
+				if (probePiece != null) {
+					if (probePiece == opponentKing) {
+						var newMove = new Move(this, this.square, probeSquare, MoveType.Attacking, probePiece, this.state);
+						this.blockedCheckingMove = newMove;
+						var blockingPiece = moveThatAttacksBlockingPiece.affectedPiece;
+						blockingPiece.blockingCheckMove = newMove; // TODO: Maybe do this in a more structured mannor.
+						//blockingPiece.isBlockingCheck = true; // TODO: Maybe do this in a more structured mannor.
+					} else {
+						return;
+					}
+				}
+				column += xDirection;
+				row += yDirection;
+			}
+		}
+		
+		// TODO: Basically, I think its a good idea to continue to probe the projection of a linear moving piece (bishop, rook, queen) after the first piece that it hits.
+		// If the piece it hits first is if of the same side, and the next piece it hits is of the other side, the other move may be considered a discovered attack.
+		// if the piece it hits first is of the opposite side and the next piece it hits is of the opposite side too, the other move may be considered a blocked attack.
+		// I really don't think there is any need to go beyond the second piece that is hit since to much could happen (except maybe for shadow moves).
+		// Probably also do shadow moves with this!
+		
+		// this.blockedCheckingMove = null;
+		//
+		// this.discoverableAttackingMoves = null; // also discoverableProtectingMoves, discoverableCheckingMove?
+		// this.blockedAttackingMoves = null;
+		//
+		// this.shadowMoves = null;
+		
+		// this.delineateBlockedMoves(xDirection, yDirection, column, row, isColumnValid, isRowValid, move.affectedPiece);
+		
+		// shadow mode?
+		
+		/*
+		this.blockedAttackingMoves = null;
+		this.blockedCheckingMove = null;
+		this.discoverableAttackingMoves = null;
+		this.discoverableCheckingMove = null;
+		this.discoverableProtectingMoves = null;
+		this.shadowAttackingMoves = null;
+		this.shadowProtectingMoves = null;
+		
+		this.blockingDiscoverableCheckMove = null;
+		*/
+		
+		delineateBlockedMoves(xDirection, yDirection, column, row, isColumnValid, isRowValid, blockingPiece) {
+			while (isColumnValid(column) && isRowValid(row)) {
+				var probeSquare = Position.getSquareFromPoint(column, row);
+				var probePiece = this.state.board.pieceAt(probeSquare);
+				if (probePiece != null) {
+					if (blockingPiece.side == this.side.opposite) { // blockingPiece is opponent piece
+						if (probePiece.side == this.side.opposite) { // blocked move hits opponent piece
+							var newMove = new Move(this, this.square, probeSquare, MoveType.Attacking, probePiece, this.state);
+							this.blockedAttackingMoves.push(newMove);
+							if (probePiece instanceof King) { // is checking move
+								this.blockedCheckingMove = newMove;
+								blockingPiece.blockingCheckMove = newMove; // TODO: Maybe do this in a more structured mannor.
+							} else if (blockingPiece instanceof King) {
+								// then it could be a skew, but this should be handled elsewhere probably.
+							}
+						}
+						return;
+					} else { // blockingPiece is same side piece
+						if (probePiece.side == this.side.opposite) { // blocked move hits opponent piece
+							var newMove = new Move(this, this.square, probeSquare, MoveType.Attacking, probePiece, this.state);
+							if (this.canBlockingPieceMoveOutOfLineOfAttack(blockingPiece, this, probePiece)) {
+								this.discoverableAttackingMoves.push(newMove);
+								if (probePiece instanceof King) { // is checking move
+									this.discoverableCheckingMove = newMove;
+									blockingPiece.blockingDiscoverableCheckMove = newMove; // ??? // TODO: Maybe do this in a more structured mannor.
+								}
+							}
+							if (this.canPieceShadowMoveThroughOtherPieceInDirection(this, blockingPiece, xDirection, yDirection)) {
+								this.shadowAttackingMoves.push(newMove);
+							}
+							return;
+						} else { // blocked move hits this side piece
+							var newMove = new Move(this, this.square, probeSquare, MoveType.Protecting, probePiece, this.state);
+							if (this.canBlockingPieceMoveOutOfLineOfAttack(blockingPiece, this, probePiece)) {
+								this.discoverableProtectingMoves.push(newMove); // Not super important.
+							}
+							if (this.canPieceShadowMoveThroughOtherPieceInDirection(this, blockingPiece, xDirection, yDirection)) {
+								this.shadowProtectingMoves.push(newMove);
+								// Don't return so that other possible shadow moves can be detected.
+								return; // temp
+							} else {
+								return;
+							}
+						}
+					}
+				}
+				column += xDirection;
+				row += yDirection;
+			}
+		}
+
+		// In theory or by actual legal moves?
+		// By actual raw legal moves:
+		// Is this too expensive?
+		canBlockingPieceMoveOutOfLineOfAttack(blockingPiece, attackingPiece, targetPiece) {
+			var squaresOfPath = Util.getSquaresBetweenTwoPieces(attackingPiece, targetPiece);
+			blockingPiece.getRawLegalMoves().forEach(rawLegalMove => {
+				if (!squaresOfPath.includes(rawLegalMove.toSquare)) {
+					return true;
+				}
+			});
+			return false;
+		}
+
+		// In theory or by actual legal moves?
+		// In theory:
+		canBlockingPieceMoveOutOfLineOfAttack_in_theory(blockingPiece, xDirection, yDirection) {
+			return true;
+		}
+		
+		canPieceShadowMoveThroughOtherPieceInDirection(piece, otherPiece, xDirection, yDirection) {
+			return (
+				(Util.isDirectionOrthogonal(xDirection, yDirection) && (piece instanceof Rook || piece instanceof Queen) && (otherPiece instanceof Rook || otherPiece instanceof Queen))
+				|| 
+				(Util.isDirectionDiagonal(xDirection, yDirection) && (piece instanceof Bishop || piece instanceof Queen) && (otherPiece instanceof Pawn || otherPiece instanceof Bishop || otherPiece instanceof Queen))
+			);
+		}
+		
+		
+		
+		
+		
+		delineateListOfMoves(targetSquareList) {
+			targetSquareList.forEach(targetSquare => 
+				this.delineateSingleMove(targetSquare)
+			);
+		}
+		
+		delineateSingleMove(targetSquare, doNotCheckBoundaries) {
+			if (!doNotCheckBoundaries && !Position.from(targetSquare).isValid()) {
+				return null;
+			}
+			var pieceAtTargetSquare = this.state.board.pieceAt(targetSquare);
+			if (pieceAtTargetSquare == null) {
+				var newMove = new Move(this, this.square, targetSquare, MoveType.Neutral, null, this.state);
+				this.rawLegalMoves.push(newMove);
+				return newMove;
+			} else {
+				if (pieceAtTargetSquare.side != this.side) {
+					var newMove = new Move(this, this.square, targetSquare, MoveType.Attacking, pieceAtTargetSquare, this.state);
+					this.rawLegalMoves.push(newMove);
+					this.rawAttackingMoves.push(newMove);
+					this.determineIfAttackingMoveIsCheck(newMove);
+					return newMove;
+				} else { // pieceAtTargetSquare.side == this.side
+					var newMove = new Move(this, this.square, targetSquare, MoveType.Protecting, pieceAtTargetSquare, this.state);
+					this.rawProtectingMoves.push(newMove);
+					return newMove;
+				}
+			}
+		}
+		
+		determineIfAttackingMoveIsCheck(move) {
+			if (move.affectedPiece instanceof King) {
+				this.state.setSideInCheck(this.side.opposite);
+			}
+		}
+	}
+	
+	////////// Pawn //////////
+	class Pawn extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Pawn";
+			this.points = 1;
+		}
+		
+		clone() {
+			return new Pawn(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		delineateRawMoves() {
+			var isSingleAdvanceLegal = this.delineatePawnSingleAdvanceMove();
+			
+			this.delineatePawnDoubleAdvanceMove(isSingleAdvanceLegal);
+			
+			this.delineatePawnNormalCaptureMoves();
+			//this.delineatePawnNormalCaptureMove(-1);
+			//this.delineatePawnNormalCaptureMove(1);
+			
+			this.delineatePawnEnPassantCaptureMove(-1);
+			this.delineatePawnEnPassantCaptureMove(1);
+		}
+		
+		delineatePawnSingleAdvanceMove() {
+			var targetPosition = this.getPosition().diff(0, this.side.direction * 1);
+			if (this.state.board.pieceAt(targetPosition.square) == null) {
+				var newMove = new Move(this, this.square, targetPosition.square, MoveType.Neutral, null, this.state);
+				if (targetPosition.getRow() == 0 || targetPosition.getRow() == 7) {
+					newMove.isPromotion = true;
+				}
+				this.rawLegalMoves.push(newMove);
+				return true;
+			}
+		}
+			
+		delineatePawnDoubleAdvanceMove(isSingleAdvanceLegal) {
+			if (this.hasNeverMoved && (this.getPosition().getRow() == this.side.homePawnRow) && isSingleAdvanceLegal) {
+				var targetPosition = this.getPosition().diff(0, this.side.direction * 2);
+				if (this.state.board.pieceAt(targetPosition.square) == null) {
+					var newMove = new Move(this, this.square, targetPosition.square, MoveType.Neutral, null, this.state);
+					this.rawLegalMoves.push(newMove);
+				}
+			}
+		}
+		
+		delineatePawnNormalCaptureMoves() {
+			this.delineatePawnNormalCaptureMove(-1);
+			this.delineatePawnNormalCaptureMove(1);
+		}
+		
+		// TODO: Improve!
+		getPawnNormalCaptureAttackedSquares() {
+			var attackedSquares = [];
+			var potentialAttackedPositions = [
+				this.getPosition().diff(-1, this.side.direction * 1),
+				this.getPosition().diff(1, this.side.direction * 1)
+			];
+			potentialAttackedPositions.forEach(position => {
+				if (position.isValid()) {
+					attackedSquares.push(position.square);
+				}
+			});
+			return attackedSquares;
+		}
+		
+		delineatePawnNormalCaptureMove(columnOffset) {
+			var targetPosition = this.getPosition().diff(columnOffset, this.side.direction * 1);
+			if (targetPosition.isValid()) {
+				var pieceAtTargetPosition = this.state.board.pieceAt(targetPosition.square);
+				if (pieceAtTargetPosition != null) {
+					if (this.isOpponent(pieceAtTargetPosition)) {
+						var newMove = new Move(this, this.square, targetPosition.square, MoveType.Attacking, pieceAtTargetPosition, this.state);
+						if (targetPosition.getRow() == 0 || targetPosition.getRow() == 7) {
+							newMove.isPromotion = true;
+						}
+						this.rawLegalMoves.push(newMove);
+						this.rawAttackingMoves.push(newMove);
+						this.determineIfAttackingMoveIsCheck(newMove);
+					} else {
+						var newMove = new Move(this, this.square, targetPosition.square, MoveType.Protecting, pieceAtTargetPosition, this.state);
+						this.rawProtectingMoves.push(newMove);
+					}
+				} else {
+					// TODO: ???
+					//var newMove = new Move(this, this.square, targetPosition.square, MoveType.Attacking, null, this.state);
+					//this.rawAttackingMoves.push(newMove);
+				}
+			}
+		}
+		
+		delineatePawnEnPassantCaptureMove(columnOffset) {
+			if (this.getPosition().getRow() != 3 && this.getPosition().getRow() != 4) {
+				return;
+			}
+			var opponentPawnPosition = this.getPosition().diff(columnOffset, 0);
+			if (opponentPawnPosition.isValid()) {
+				var pieceAtTargetPosition = this.state.board.pieceAt(opponentPawnPosition.square);
+				if (pieceAtTargetPosition instanceof Pawn && this.isOpponent(pieceAtTargetPosition)) { // Square directly to left is occupied by enemy pawn.
+					var lastMove = this.state.move;
+					if (lastMove.toSquare == opponentPawnPosition.square) { // Last move was made by this pawn.
+						if (Math.abs(Position.from(lastMove.toSquare).getRow() - Position.from(lastMove.fromSquare).getRow()) == 2) { // This pawn's last move was an advance of two squares.
+							var targetPosition = this.getPosition().diff(columnOffset, this.side.direction * 1);
+							var newMove = new Move(this, this.square, targetPosition.square, MoveType.Attacking, pieceAtTargetPosition, this.state);
+							newMove.isEnPassant = true;
+							this.rawLegalMoves.push(newMove);
+							this.rawAttackingMoves.push(newMove);
+						}
+					}
+				}
+			}
+		}
+		
+		moveTo(newSquare) {
+			if (Position.from(this.square).getColumn() != Position.from(newSquare).getColumn() && this.state.board.pieceAt(newSquare) == null) { // En passant.
+				var xDiff = Position.from(newSquare).getColumn() - Position.from(this.square).getColumn();
+				var opponentPiecePosition = this.getPosition().diff(xDiff, 0); // Warning Note: Getting position here seems to cache it before move is actually made, causing issues.
+				var opponentPiece = this.state.board.pieceAt(opponentPiecePosition.square);
+				this.state.board.removePiece(opponentPiece, opponentPiece.square);
+				this.state.pieces.remove(opponentPiece);
+			}
+			super.moveTo(newSquare); // Any case.
+			if (Position.from(newSquare).getRow() == 0 || Position.from(newSquare).getRow() == 7) { // Promotion.
+				// Replace pawn with promotion piece (only queen for now).
+				var newPiece = new Queen(this.side, newSquare, this.state);
+				this.state.board.promotePiece(this, newPiece, newSquare);
+				this.state.pieces.remove(this);
+				this.state.pieces.add(newPiece);
+			}
+		}
+	}
+	
+	////////// Knight //////////
+	class Knight extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Knight";
+			this.points = 3;
+		}
+		
+		clone() {
+			return new Knight(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		delineateRawMoves() {
+			var targetSquareList = [
+				this.getPosition().diff(-2, -1).square,
+				this.getPosition().diff(-2, 1).square,
+				this.getPosition().diff(-1, -2).square,
+				this.getPosition().diff(-1, 2).square,
+				this.getPosition().diff(1, -2).square,
+				this.getPosition().diff(1, 2).square,
+				this.getPosition().diff(2, -1).square,
+				this.getPosition().diff(2, 1).square
+			];
+			this.delineateListOfMoves(targetSquareList);
+		}
+	}
+	
+	////////// Bishop //////////
+	class Bishop extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Bishop";
+			this.points = 3;
+		}
+		
+		clone() {
+			return new Bishop(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		delineateRawMoves() {
+			this.delineateDiagonalMoves();
+		}
+	}
+	
+	////////// Rook //////////
+	class Rook extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Rook";
+			this.points = 5;
+		}
+		
+		clone() {
+			return new Rook(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+
+		delineateRawMoves() {
+			this.delineateOrthogonalMoves();
+		}
+	}
+	
+	////////// Queen //////////
+	class Queen extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "Queen";
+			this.points = 9;
+		}
+		
+		clone() {
+			return new Queen(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		delineateRawMoves() {
+			this.delineateDiagonalMoves();
+			this.delineateOrthogonalMoves();
+		}
+	}
+	
+	////////// King //////////
+	class King extends Piece {
+		constructor(side, square, state, id, hasNeverMoved) {
+			super(side, square, state, id, hasNeverMoved);
+			this.name = "King";
+			this.isCastling = false;
+		}
+		
+		clone() {
+			return new King(this.side, this.square, this.state, this.id, this.hasNeverMoved);
+		}
+		
+		delineateRawMoves() {
+			var targetSquareList = [
+				this.getPosition().diff(-1, -1).square,
+				this.getPosition().diff(-1, 0).square,
+				this.getPosition().diff(-1, 1).square,
+				this.getPosition().diff(0, -1).square,
+				this.getPosition().diff(0, 1).square,
+				this.getPosition().diff(1, -1).square,
+				this.getPosition().diff(1, 0).square,
+				this.getPosition().diff(1, 1).square
+			];
+			this.delineateListOfMoves(targetSquareList);
+			
+			this.delineateCastleMoves();
+		}
+		
+		delineateCastleMoves() {
+			if (this.hasNeverMoved) { // King has never moved.
+				this.delineateCastleMove(1, 7); // King-side castle.
+				this.delineateCastleMove(-1, 0); // Queen-side castle.
+			}
+		}
+		
+		// TODO: CASTLE SHOULD NOT BE POSSIBLE IF KING IS IN CHECK BUT I TOTALLY SAW IT HAPPEN!!!!! JUST SET IT UP IN CUSTOM MODE AND SEE!
+		delineateCastleMove(xDirection, rookColumn) {
+			var rookPosition = Position.fromPoint(rookColumn, this.getPosition().getRow());
+			var rook = this.state.board.pieceAt(rookPosition.square);
+			if (rook != null && rook.hasNeverMoved) {
+				if (Util.isClearBetweenTwoPieces(this, rook)) {
+					var middleSquare = Position.fromPoint(this.getPosition().getColumn() + xDirection * 1, this.getPosition().getRow()).square;
+					var oppositeSideLegalMoves = this.state.moves.getAllNonKingRawLegalMovesOfSide(this.side.opposite);
+					if (!oppositeSideLegalMoves.includes(this.square) && !oppositeSideLegalMoves.includes(middleSquare)) {
+						var targetPosition = Position.fromPoint(this.getPosition().getColumn() + xDirection * 2, this.getPosition().getRow());
+						var newMove = new Move(this, this.square, targetPosition.square, MoveType.Neutral, null, this.state);
+						newMove.isCastle = true;
+						newMove.coincidentMove = new Move(rook, rook.square, middleSquare, MoveType.Neutral, null, this.state);
+						this.rawLegalMoves.push(newMove); // TODO: Maybe use special move object/values.
+					}
+				}
+			}
+		}
+		
+		moveTo(newSquare) {
+			var row = this.getPosition().getRow();
+			if (this.hasNeverMoved && newSquare == Position.fromPoint(6, row).square) { // King-side Castle.
+				this.isCastling = true;
+				
+				var kingsRookPosition = Position.fromPoint(7, row);
+				var kingsRook = this.state.board.pieceAt(kingsRookPosition.square);
+				var newKingsRookPosition = Position.fromPoint(5, row);
+				
+				// Action!
+				kingsRook.moveTo(newKingsRookPosition.square);
+			} else if (this.hasNeverMoved && newSquare == Position.fromPoint(2, row).square) { // Queen-side Castle.
+				this.isCastling = true;
+				
+				var queensRookPosition = Position.fromPoint(0, row);
+				var queensRook = this.state.board.pieceAt(queensRookPosition.square);
+				var newQueensRookPosition = Position.fromPoint(3, row);
+				
+				// Action!
+				queensRook.moveTo(newQueensRookPosition.square);
+			}
+			super.moveTo(newSquare); // Any case.
+			
+			this.isCastling = false;
+		}
+	}
+	
+	/************************* State **************************/
+	
+	// Factors to consider:
+	// - Score
+	// - Round number
+	// - Game phase
+	// - Attacking moves of side
+	// - Attacking moves of opposite side
+	// - Protection of pieces (rated differently by protecting piece value)
+	// - Position (proximity to center, pawn advancement)
+	// - Overall mobility (~ number of possible moves)
+	// - Vulerability to check (???)
+	// - Check
+	// - Checkmate (+Infinity)
+	// - Stalemate (-Infinity)
+	// - Side of next turn?
+	
+	// State memory:
+	// - Score
+	// - Round number (& Move number)
+	// - Game phase
+	// - Legal moves
+	// - Attacking moves / Attacked pieces
+	// - Protection ratings (Protecting moves)
+	// - Position grade
+	// - Mobility grade
+	// - Check vulnerability grade
+	// - Is in check
+	// - Is in checkmate
+	// - Is in stalemate
+	
+	class State {
+		constructor(pieces) {
+			this.pieces = new Pieces(pieces);
+			this.board = new Board(pieces);
+			
+			this.score = null;
+			
+			this.moveCount = 0; // ?
+			
+			this.move = null; // This represents the move that was made in the previous state to bring about this state. // TODO: Should this be called 'lastMove'?
+			this.isLightSideInCheck = false;
+			this.isDarkSideInCheck = false;
+			
+			this.initialize();
+		}
+		
+		initialize() {
+			// this.score = new Score(this); // ? Should uncomment this after done new changes.
+			
+			this.moves = new Moves(this);
+			
+			this.gamePhase = new GamePhaseAnalyzer(this);
+		}
+		
+		// TODO: Should probably combine 'clone' and 'transition' so that all activitive is encapsulated in 'State' class and does not need to be managed externally.
+		
+		clone() {
+			var newPieces = [];
+			var pieces = this.pieces.getAll();
+			for (var i = 0; i < pieces.length; i++) {
+				var piece = pieces[i];
+				var newPiece = piece.clone();
+				newPieces.push(newPiece);
+			}
+			var newState = new State(newPieces);
+			for (var i = 0; i < newPieces.length; i++) {
+				var newPiece = newPieces[i];
+				newPiece.state = newState;
+			}
+			newState.moveCount = this.moveCount;
+			return newState;
+		}
+		
+		transition(piece, fromSquare, toSquare, initialState) {
+			this.move = new Move(piece, fromSquare, toSquare, null, null, initialState, this); // TODO: Maybe populate better.
+			
+			piece.moveTo(toSquare);
+			
+			// Post-move analysis.
+			this.isSideInCheck(piece.side.opposite);
+			
+			this.score = new Score(this);
+			
+			this.moveCount++; // ?
+		}
+		
+		isSideInCheck(side) {
+			if (!this.moves.areRawMovesDelineated) {
+				this.moves.delineateRawMoves();
+			}
+			if (side == Side.Light) {
+				return this.isLightSideInCheck;
+			} else if (side == Side.Dark) {
+				return this.isDarkSideInCheck;
+			}
+		}
+		
+		setSideInCheck(side) {
+			if (side == Side.Light) {
+				this.isLightSideInCheck = true;
+			} else if (side == Side.Dark) {
+				this.isDarkSideInCheck = true;
+			}
+		}
+		
+		isSideInCheckMate(side) {
+			return (this.isSideInCheck(side) && this.moves.getLegalMovesOfSide(side).length == 0);
+		}
+		
+		isSideInStaleMate(side) {
+			return (!this.isSideInCheck(side) && this.moves.getLegalMovesOfSide(side).length == 0);
+		}
+	}
+	
+	State.currentState = null;
+	
+	/************************* Score **************************/
+	
+	class Score {
+		constructor(state) {
+			this.state = state;
+			
+			this.lightPoints = this.calculatePointsForSide(Side.Light);
+			this.darkPoints = this.calculatePointsForSide(Side.Dark);
+		}
+		
+		getPointsForSide(side) {
+			if (side == Side.Light) {
+				return this.lightPoints;
+			} else if (side == Side.Dark) {
+				return this.darkPoints;
+			}
+			return null;
+		}
+		
+		calculatePointsForSide(side) {
+			var points = 39;
+			var piecesOfOtherSide = this.state.pieces.getAllOfSide(side.opposite);
+			for (var i = 0; i < piecesOfOtherSide.length; i++) {
+				var piece = piecesOfOtherSide[i];
+				if (!(piece instanceof King)) {
+					points -= piece.points;
+				}
+			}
+			return points;
+		}
+	}
+	
+	/************************* Moves **************************/
+	
+	class Moves {
+		constructor(state) {
+			this.state = state;
+
+			this.areRawMovesDelineated = false;
+			this.rawLightLegalMoves = [];
+			this.rawLightAttackingMoves = [];
+			this.rawLightProtectingMoves = [];
+			this.rawDarkLegalMoves = [];
+			this.rawDarkAttackingMoves = [];
+			this.rawDarkProtectingMoves = [];
+			
+			this.areRawAttackingSquaresDelineated = false;
+			this.rawLightAttackingSquares = [];
+			this.rawDarkAttackingSquares = [];
+			
+			this.areRawProtectingSquaresDelineated = false;
+			this.rawLightProtectingSquares = [];
+			this.rawDarkProtectingSquares = [];
+
+			this.areMovesDelineated = false;
+			this.lightLegalMoves = [];
+			this.lightAttackingMoves = [];
+			this.lightProtectingMoves = [];
+			this.darkLegalMoves = [];
+			this.darkAttackingMoves = [];
+			this.darkProtectingMoves = [];
+			
+			this.areAttackingSquaresDelineated = false;
+			this.lightAttackingSquares = [];
+			this.darkAttackingSquares = [];
+			
+			this.areProtectingSquaresDelineated = false;
+			this.lightProtectingSquares = [];
+			this.darkProtectingSquares = [];
+		}
+		
+		getRawLegalMovesOfSide(side) {
+			if (!this.areRawMovesDelineated) {
+				this.delineateRawMoves();
+			}
+			
+			return (side == Side.Light ? this.rawLightLegalMoves : this.rawDarkLegalMoves);
+		}
+		
+		getAllNonKingRawLegalMovesOfSide(side) { // TODO: Cache?
+			var legalMoves = [];
+			this.state.pieces.getAllOfSide(side).filter(piece => (!(piece instanceof King))).forEach(piece => {
+				legalMoves = legalMoves.concat(piece.getRawLegalMoves());
+			});
+			return legalMoves;
+		}
+		
+		getRawAttackingMovesOfSide(side) {
+			if (!this.areRawMovesDelineated) {
+				this.delineateRawMoves();
+			}
+			return (side == Side.Light ? this.rawLightAttackingMoves : this.rawDarkAttackingMoves);
+		}
+		
+		getRawProtectingMovesOfSide(side) {
+			if (!this.areRawMovesDelineated) {
+				this.delineateRawMoves();
+			}
+			return (side == Side.Light ? this.rawLightProtectingMoves : this.rawDarkProtectingMoves);
+		}
+		
+		delineateRawMoves() {
+			this.delineateRawMovesOfSide(Side.Light, this.rawLightLegalMoves, this.rawLightAttackingMoves, this.rawLightProtectingMoves);
+			this.delineateRawMovesOfSide(Side.Dark, this.rawDarkLegalMoves, this.rawDarkAttackingMoves, this.rawDarkProtectingMoves);
+			this.areRawMovesDelineated = true;
+		}
+		
+		delineateRawMovesOfSide(side, rawSideLegalMoves, rawSideAttackingMoves, rawSideProtectingMoves) {
+			this.state.pieces.getAllOfSide(side).forEach(piece => {
+				rawSideLegalMoves.push(...piece.getRawLegalMoves());
+				rawSideAttackingMoves.push(...piece.getRawAttackingMoves());
+				rawSideProtectingMoves.push(...piece.getRawProtectingMoves());
+			});
+		}
+		
+		getRawAttackingSquaresOfSide(side) {
+			if (!this.areRawAttackingSquaresDelineated) {
+				this.delineateRawAttackingSquares();
+			}
+			return (side == Side.Light ? this.rawLightAttackingSquares : this.rawDarkAttackingSquares);
+		}
+		
+		delineateRawAttackingSquares() {
+			this.rawLightAttackingSquares = this.delineateRawAttackingSquaresOfSide(Side.Light);
+			this.rawDarkAttackingSquares = this.delineateRawAttackingSquaresOfSide(Side.Dark);
+			this.areRawAttackingSquaresDelineated = true;
+		}
+		
+		delineateRawAttackingSquaresOfSide(side) { // TODO: Exclude castle?
+			var rawAttackingSquaresSet = new Set();
+			// TODO: This does not work for pawns!
+			this.getRawLegalMovesOfSide(side).forEach(move => {
+				if (!(move.piece instanceof Pawn)) {
+					rawAttackingSquaresSet.add(move.toSquare);
+				}
+			});
+			// .getPawnNormalCaptureAttackedSquares()
+			this.state.pieces.getAllOfSide(side).filter(piece => (piece instanceof Pawn)).forEach(pawn => {
+				pawn.getPawnNormalCaptureAttackedSquares().forEach(attackedSquare => {
+					rawAttackingSquaresSet.add(attackedSquare);
+				});
+			});
+			
+			return Array.from(rawAttackingSquaresSet);
+		}
+		
+		getRawProtectingSquaresOfSide(side) {
+			if (!this.areRawProtectingSquaresDelineated) {
+				this.delineateRawProtectingSquares();
+			}
+			return (side == Side.Light ? this.rawLightProtectingSquares : this.rawDarkProtectingSquares);
+		}
+		
+		delineateRawProtectingSquares() {
+			this.rawLightProtectingSquares = this.delineateRawProtectingSquaresOfSide(Side.Light);
+			this.rawDarkProtectingSquares = this.delineateRawProtectingSquaresOfSide(Side.Dark);
+			this.areRawProtectingSquaresDelineated = true;
+		}
+		
+		delineateRawProtectingSquaresOfSide(side) {
+			var rawProtectingSquaresSet = new Set();
+			this.getRawProtectingMovesOfSide(side).forEach(move => {
+				rawProtectingSquaresSet.add(move.toSquare);
+			});
+			return Array.from(rawProtectingSquaresSet);
+		}
+		
+		getLegalMovesOfSide(side) {
+			if (!this.areMovesDelineated) {
+				this.delineateMoves();
+			}
+			return (side == Side.Light ? this.lightLegalMoves : this.darkLegalMoves);
+		}
+		
+		getLegalMovesOfPiece(piece) {
+			return this.getLegalMovesOfSide(piece.side).filter(move => move.piece == piece);
+		}
+		
+		getAttackingMovesOfSide(side) {
+			if (!this.areMovesDelineated) {
+				this.delineateMoves();
+			}
+			return (side == Side.Light ? this.lightAttackingMoves : this.darkAttackingMoves);
+		}
+		
+		getAttackingMovesOfPiece(piece) {
+			return this.getAttackingMovesOfSide(piece.side).filter(move => move.piece == piece);
+		}
+		
+		getProtectingMovesOfSide(side) {
+			if (!this.areMovesDelineated) {
+				this.delineateMoves();
+			}
+			return (side == Side.Light ? this.lightProtectingMoves : this.darkProtectingMoves);
+		}
+		
+		delineateMoves() {
+			this.delineateMovesOfSide(Side.Light, this.lightLegalMoves, this.lightAttackingMoves, this.lightProtectingMoves);
+			this.delineateMovesOfSide(Side.Dark, this.darkLegalMoves, this.darkAttackingMoves, this.darkProtectingMoves);
+			this.areMovesDelineated = true;
+		}
+		
+		// TODO: CONTINUE TO MOVE KING AROUND TO MAKE SURE LEGAL MOVES ARE CORRECT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// REMEMBER, PAWNS ARE DIFFERENT!!!
+		
+		// TODO: STILL NEED TO MAKE SURE THAT KING CANNOT MOVE INTO SQUARE ATTACKED BY OPPONENT KING!!!!!!!!!!!!!!!!!!!!!!
+		
+		delineateMovesOfSide(side, legalMovesThis, attackingMovesThis, protectingMovesThis) {
+			var legalMoves = this.getRawLegalMovesOfSide(side).slice();
+			var attackingMoves = this.getRawAttackingMovesOfSide(side).slice();
+			var protectingMoves = this.getRawProtectingMovesOfSide(side).slice();
+			
+			if (!this.state.isSideInCheck(side)) {
+				this.removeMovesOfKingIntoHostileSquare(side, legalMoves, attackingMoves, protectingMoves);
+				this.removeMovesOfCheckBlockingPieceResultingInNotBlocking(side, legalMoves, attackingMoves, protectingMoves);
+			} else { // This side is in check! Only moves which get out of check are legal!
+				// 3 Ways to get out of check:
+				// Move king into square which is not attacked.
+				// Block linear attack with any piece which is not the king. (Linear attack can only come from bishop, rook, or queen.)
+				// Kill attacking piece.
+				
+				// Move king into square which is not attacked.
+				var king = this.state.pieces.getKingOfSide(side);
+				var legalMovesOfKing = king.getRawLegalMoves().slice();
+				this.removeMovesOfKingIntoHostileSquare(side, legalMovesOfKing, null, null);
+				// TODO: Also remove moves of king into square in line with linear attack which may not be under attack because king blocks attack of square!
+				
+				
+				var legalBlockingCheckMoves = [];
+				var legalCaptureOfCheckingPieceMoves = [];
+				
+				var attackingMovesOfOpponentTowardKing = this.getRawAttackingMovesOfSide(side.opposite).filter(move => (move.affectedPiece instanceof King));
+				if (attackingMovesOfOpponentTowardKing.length == 1) { // NOTE: If there is more than 1 attacking piece, the king must move! Two attacks cannot both be blocked. Two attacking pieces cannot both be killed.
+					var attackingMove = attackingMovesOfOpponentTowardKing[0];
+					
+					// Block linear attack with any piece which is not the king. (Linear attack can only come from bishop, rook, or queen.)
+					if ((attackingMove.piece instanceof Bishop) || (attackingMove.piece instanceof Rook) || (attackingMove.piece instanceof Queen)) { // Linear attacking move.
+						var intermediateSquares = Util.getSquaresBetweenTwoPieces(attackingMove.piece, king);
+						if (intermediateSquares.length > 0) {
+							var legalMovesOfNonKingPieces = this.getRawLegalMovesOfSide(side).filter(move => (!(move.piece instanceof King)));
+							legalMovesOfNonKingPieces.forEach(move => {
+								if (move.piece.blockingCheckMove == null && intermediateSquares.includes(move.toSquare)) {
+									legalBlockingCheckMoves.push(move);
+								}
+							});
+						}
+					}
+					
+					// Kill attacking piece.
+					var attackingMovesOfNonKingPieces = this.getRawAttackingMovesOfSide(side).filter(move => (!(move.piece instanceof King)));
+					attackingMovesOfNonKingPieces.forEach(move => {
+						if ((move.piece.blockingCheckMove == null) && (move.affectedPiece == attackingMove.piece)) {
+							legalCaptureOfCheckingPieceMoves.push(move);
+						}
+					})
+				}
+				
+				
+				// Also remove moves of king into square in line with linear attack which may not be under attack because king blocks attack of square!
+				var linearAttackingMovesOfOpponentTowardKing = attackingMovesOfOpponentTowardKing
+						.filter(attackingMove => ((attackingMove.piece instanceof Bishop) || (attackingMove.piece instanceof Rook) || (attackingMove.piece instanceof Queen)))
+				var illegalBlockedSquares = [];
+				linearAttackingMovesOfOpponentTowardKing.forEach(linearAttackingMove => {
+					var direction = Util.getDirectionFromPieceToPiece(linearAttackingMove.piece, king);
+					var blockedPosition = king.getPosition().diff(direction.xDirection, direction.yDirection);
+					illegalBlockedSquares.push(blockedPosition.square);
+				});
+				legalMovesOfKing.slice().forEach(kingMove => {
+					if (illegalBlockedSquares.includes(kingMove.toSquare)) {
+						removeFromArray(legalMovesOfKing, kingMove);
+					}
+				});
+				
+					
+				legalMoves = legalMovesOfKing.concat(legalBlockingCheckMoves).concat(legalCaptureOfCheckingPieceMoves);
+				attackingMoves = legalMovesOfKing.filter(move => move.moveType == MoveType.Attacking).concat(legalCaptureOfCheckingPieceMoves);
+				protectingMoves = [];
+			}
+			
+			legalMovesThis.push(...legalMoves);
+			attackingMovesThis.push(...attackingMoves);
+			protectingMovesThis.push(...protectingMoves);
+		}
+		
+		
+		removeMovesOfKingIntoHostileSquare(side, legalMoves, attackingMoves, protectingMoves) {
+			var king = this.state.pieces.getKingOfSide(side);
+			var kingRawLegalMoves = king.getRawLegalMoves();
+			var illegalSquares = this.getRawAttackingSquaresOfSide(side.opposite);
+			illegalSquares = illegalSquares.concat(this.getRawProtectingSquaresOfSide(side.opposite));
+			kingRawLegalMoves.forEach(move => { // TODO: BIG PROBLEM HERE... ITEMS OF THE ARRAY BEING LOOPED THROUGH ARE DISAPPEARING!!!!!
+				if (illegalSquares.includes(move.toSquare)) {
+					removeFromArray(legalMoves, move);
+					removeFromArray(attackingMoves, move);
+					removeFromArray(protectingMoves, move);
+				}
+			});
+		}
+		
+		removeMovesOfCheckBlockingPieceResultingInNotBlocking(side, legalMoves, attackingMoves, protectingMoves) {
+			var king = this.state.pieces.getKingOfSide(side);
+			this.state.pieces.getAllOfSide(side).forEach(piece => {
+				if (piece.blockingCheckMove != null) {
+					var attackingPiece = piece.blockingCheckMove.piece;
+					var legalSquares = Util.getSquaresBetweenTwoPieces(attackingPiece, king);
+					legalSquares.push(attackingPiece.square);
+					piece.getRawLegalMoves().forEach(move => {
+						if (!legalSquares.includes(move.toSquare)) {
+							removeFromArray(legalMoves, move);
+							removeFromArray(attackingMoves, move);
+						}
+					});
+					piece.getRawProtectingMoves().forEach(move => {
+						removeFromArray(protectingMoves, move);
+					});
+				}
+			});
+		}
+
+		// TODO: getAttackingPiecesOfSide
+		// TODO: getAttackedPiecesOfSide
+		// TODO: what else?
+		
+		getAttackingSquaresOfSide(side) {
+			if (!this.areAttackingSquaresDelineated) {
+				this.delineateAttackingSquares();
+			}
+			return (side == Side.Light ? this.lightAttackingSquares : this.darkAttackingSquares);
+		}
+		
+		delineateAttackingSquares() {
+			this.lightAttackingSquares = this.delineateAttackingSquaresOfSide(Side.Light);
+			this.darkAttackingSquares = this.delineateAttackingSquaresOfSide(Side.Dark);
+			this.areAttackingSquaresDelineated = true;
+		}
+		
+		delineateAttackingSquaresOfSide(side) { // TODO: Exclude castle?
+			var attackingSquaresSet = new Set();
+			// TODO: This does not work for pawns!
+			this.getLegalMovesOfSide(side).forEach(move => {
+				if (!(move.piece instanceof Pawn)) {
+					attackingSquaresSet.add(move.toSquare);
+				}
+			});
+			// TODO: This needs to be improved to account for illegal moves that would expose check. (Possibly already good.)
+			this.state.pieces.getAllOfSide(side).filter(piece => ((piece instanceof Pawn) && (piece.blockedCheckingMove == null))).forEach(pawn => {
+				pawn.getPawnNormalCaptureAttackedSquares().forEach(attackedSquare => {
+					attackingSquaresSet.add(attackedSquare);
+				});
+			});
+			return Array.from(attackingSquaresSet);
+		}
+		
+		getProtectingSquaresOfSide(side) {
+			if (!this.areProtectingSquaresDelineated) {
+				this.delineateProtectingSquares();
+			}
+			return (side == Side.Light ? this.lightProtectingSquares : this.darkProtectingSquares);
+		}
+		
+		delineateProtectingSquares() {
+			this.lightProtectingSquares = this.delineateProtectingSquaresOfSide(Side.Light);
+			this.darkProtectingSquares = this.delineateProtectingSquaresOfSide(Side.Dark);
+			this.areProtectingSquaresDelineated = true;
+		}
+		
+		delineateProtectingSquaresOfSide(side) {
+			var protectingSquaresSet = new Set();
+			this.getLegalMovesOfSide(side).forEach(move => {
+				protectingSquaresSet.add(move.toSquare);
+			});
+			return Array.from(protectingSquaresSet);
+		}
+	}
+	
+	/************************* Game Phase **************************/
+	
+	var GamePhase = {
+		Opening: {name: "Opening"},
+		Middle: {name: "Middle"},
+		End: {name: "End"}
+	};
+	
+	// TODO: Determine at creation of state. (Perhaps a lazy load.)
+	// roundNumber for projection purposes must come from (idk yet)!
+	// TODO: Be sure not to go backwards.
+	
+	class GamePhaseAnalyzer {
+		constructor(state) {
+			this.state = state;
+		}
+	
+		getGamePhaseOfSide(side) {
+			// TODO: Implement!
+		
+			// Opening game over after 8 - 12 moves.
+			// End game begins (at least) after 25 moves.
+		
+			var roundNumber = MoveHistory.getRoundNumber();
+		
+			if (roundNumber <= 12 && this.isOpeningGame(side)) {
+				return GamePhase.Opening;
+			} else if (roundNumber >= 25 && this.isEndGame(side)) {
+				return GamePhase.End;
+			} else {
+				return GamePhase.Middle;
+			}
+		}
+	
+		isOpeningGame(side) {
+			var yHomeRow = (side == Side.Light ? 0 : 7);
+			var yHomePawnRow = (side == Side.Light ? 1 : 6);
+		
+			// Conditions for opening game completed:
+			//     Middle two pawns have moved.
+			//     Bishops and Knights off home row.
+			//     King has castled (or at least moved).
+			//     Queen off home row.
+			//     Rooks can "see" each other (if both rooks on home row). (what if castle unsuccessful? - king does not count)
+		
+			var openingGameConditionNotMet = false;
+		
+			var rook1 = null;
+			var rook2 = null;
+		
+			var allPiecesOfSide = this.state.pieces.getAllOfSide(side);
+			for (var i = 0; i < allPiecesOfSide.length; i++) {
+				var piece = allPiecesOfSide[i];
+			
+				var x = piece.getPosition().getColumn();
+				var y = piece.getPosition().getRow();
+			
+				if (piece instanceof Pawn) {
+					if ((x == 3 || x==4) && piece.hasNeverMoved) { // Middle two pawns have moved.
+						openingGameConditionNotMet = true;
+					}
+				} else if (piece instanceof Bishop || piece instanceof Knight) {
+					if (piece.hasNeverMoved || y == yHomeRow) { // Bishops and Knights off home row. // TODO: Consider exceptions.
+						openingGameConditionNotMet = true;
+					}
+				} else if (piece instanceof Rook) {
+					if (rook1 == null) {
+						rook1 = piece;
+					} else {
+						rook2 = piece;
+					}
+				} else if (piece instanceof King) {
+					if (piece.hasNeverMoved) { // King has castled (or at least moved).
+						openingGameConditionNotMet = true;
+					}
+				} else if (piece instanceof Queen) {
+					if (piece.hasNeverMoved || y == yHomeRow) { // Queen off home row. // TODO: Consider exceptions.
+						openingGameConditionNotMet = true;
+					}
+				}
+			}
+			
+			// Rooks can "see" each other (if both rooks on home row). (what if castle unsuccessful? - king does not count)
+			if (rook1 != null && rook2 != null) {
+				var rook1x = rook1.getPosition().getColumn();
+				var rook2x = rook2.getPosition().getColumn();
+				if (rook1x == yHomeRow && rook2x == yHomeRow) { // TODO: Is this supposed to be x or y?
+					var notClear = false; // TODO: Use Util.isClearBetweenTwoPieces
+					var lowX = Math.min(rook1x, rook2x) + 1;
+					var highX = Math.max(rook1x, rook2x) - 1;
+					for (var xi = lowX; xi <= highX; xi++) {
+						var probePosition = Position.fromPoint(xi, yHomeRow);
+						var probePiece = this.state.board.pieceAt(probePosition.square);
+						if (probePiece != null && (!(probePiece instanceof King))) {
+							notClear = true;
+						}
+					}
+				
+					if (notClear) {
+						openingGameConditionNotMet = true;
+					}
+				}
+			}
+		
+			return openingGameConditionNotMet;
+		}
+	
+		isEndGame(side) {
+			// Conditions for end game:
+			//     Only a few pieces left...
+		
+			// General condition: total value of pieces (of other side) <= 15
+			// 4 pawns (4); 3 knights or bishops (9) ---> 13
+			// 4 pawns (4); 1 queen (9) ---> 13
+			// 4 pawns (4); 2 rooks (10) ---> 14
+			// 4 pawns (4); 1 rook (5); 2 knights or bishops (6) ---> 15
+			// 3 pawns (3); 4 knights or bishops (12) ---> 15
+			// 3 pawns (3); 1 queen (9); 1 knight or bishop (3) ---> 15
+			// 1 pawns (1); 1 queen (9); 1 rook (5) ---> 15
+			// 0 pawns (0); 1 queen (9); 2 knights or bishops (6) ---> 15
+		
+			var pieceTotalOfThisSide = 39 - this.state.score.getPointsForSide(side.opposite);
+			var pieceTotalOfOppositeSide = 39 - this.state.score.getPointsForSide(side);
+			return (pieceTotalOfOppositeSide <= 15);
+		}
+	}
 	
 	/************************* Auto-moving **************************/
 	
 	Computation = {
+		baselineLookaheadSteps: 2,
+		maxLookaheadSteps: 2,
+		maxComputationTime: 10000,
+		
 		cyclesPerformed: 0,
 		currentProjection: null,
+		
+		makeComputedMove: function(side) {
+			Computation.stopWatch = new StopWatch();
+			Computation.stopWatch.start();
+			Computation.currentProjection = Computation.getBaselineProjection(side, State.currentState);
+			Computation.continueProcessing();
+		},
+		
+		getBaselineProjection: function(side, initialState) {
+			return Computation.getExistingProjectionOrNewIfNone(side, initialState, Computation.baselineLookaheadSteps);
+		},
+		
+		getExistingProjectionOrNewIfNone: function(side, initialState, lookaheadSteps) {
+			if (Computation.currentProjection == null) {
+				return new Projection(side, initialState, lookaheadSteps);
+			} else {
+				Computation.currentProjection.advanceProjection(lookaheadSteps);
+				return Computation.currentProjection;
+			}
+		},
+		
+		continueProcessing() {
+			if (Computation.shouldContinueProcessing()) {
+				Computation.establishNextProcessingThread();
+			} else {
+				Computation.executeBestMove();
+			}
+		},
+		
+		executeBestMove: function() {
+			var bestMoveProjectionNode = Computation.currentProjection.getBestMoveProjectionNode();
+						
+			var bestMove = bestMoveProjectionNode.move;
+			Control.movePiece(bestMove.piece, bestMove.toSquare);
+			
+			Computation.stopWatch.stop();
+			Computation.reset();
+			Computation.currentProjection = bestMoveProjectionNode.projection;
+			
+			bestMoveProjectionNode.printInfo();
+		},
+		
+		shouldContinueProcessing: function() {
+			return false; // Temporary.
+			
+			// TODO: Expound.
+			
+			if (Computation.stopWatch.getTotalTime() < Computation.maxComputationTime) {
+				return true;
+			}
+			return false;
+		},
+		
+		establishNextProcessingThread: function(side, initialState) {
+			setTimeout(() => {Computation.processSingleAdvancedCycle()}, 10);
+		},
+		
+		processSingleAdvancedCycle: function() {
+			// TODO: Implement.
+			
+			
+		},
 		
 		reset: function() {
 			Computation.cyclesPerformed = 0;
@@ -1569,417 +2498,729 @@
 		clear: function() {
 			Computation.currentProjection = null;
 			Computation.reset();
-		},
-		
-		makeComputedMove: function(side) {
-			//console.log("################################################################");
-			//console.log("Begining new computation...");
-			Computation.stopWatch = new StopWatch();
-			Computation.stopWatch.start();
-			//console.log("getSecondLevelMoveProjectionList...");
-			var moveProjectionList = Computation.getSecondLevelMoveProjectionList(side, State.currentState);
-			Computation.stopWatch.lap();
-			//console.log("determineAndExecuteNextProcessingStep...");
-			Computation.determineAndExecuteNextProcessingStep(moveProjectionList, side, State.currentState);
-		},
-		
-		makeComputedMoveCallback: function(bestProjectionNode) {
-			var originalProjection = Computation.currentProjection;
-		
-			var bestMove = bestProjectionNode.finalState.move;
-			Computation.currentProjection = bestProjectionNode.projection;
-		
-			var piece = State.currentState.board.pieceAt(bestMove.fromSquare);
-			Control.movePiece(piece, bestMove.toSquare);
-		
-			//console.log("Finished computation!");
-			Computation.stopWatch.stop();
-		
-			console.log ("Total posibilities: " + Computation.currentProjection.getTotalPossibilityCount());
-		
-			Computation.reset();
-		},
-		
-		getSecondLevelMoveProjectionList: function(side, initialState) {
-			var moveProjectionList = [];
-			var lookaheadSteps = 2;
-
-			//console.log("getSecondLevelProjection");
-			var projection = Computation.getSecondLevelProjection(side, lookaheadSteps, initialState, true);
-			Computation.stopWatch.lap();
-			//console.log("getValue etc...");
-
-			for (var i = 0; i < projection.projectionNodeList.length; i++) {
-				var firstLevelProjectionNode = projection.projectionNodeList[i];
-
-				var value = firstLevelProjectionNode.getValue(side, initialState);
-				var moveProjection = new MoveProjection(firstLevelProjectionNode, value, lookaheadSteps);
-				moveProjectionList.push(moveProjection);
-			}
-
-			moveProjectionList.sort((a, b) => b.value - a.value);
-
-			return moveProjectionList;
-		},
-		
-		getSecondLevelProjection: function(side, lookaheadSteps, initialState, doUseCachedProjection) {
-			var projection = (doUseCachedProjection ? Computation.currentProjection : null);
-			if (projection == null) {
-				//console.log("new Projection");
-				projection = new Projection(side, lookaheadSteps, initialState);
-			} else {
-				//console.log("projectAnotherLevel");
-				projection.projectAnotherLevel(2);
-				projection.refresh();
-			}
-			return projection;
-		},
-		
-		determineAndExecuteNextProcessingStep: function(moveProjectionList, side, initialState) {
-			if (Computation.shouldDoAnotherStep(moveProjectionList)) {
-				Computation.stopWatch.lap();
-				//console.log("establishNextProcessThread...");
-				Computation.establishNextProcessThread(moveProjectionList, side, initialState);
-			} else {
-				var bestMove = moveProjectionList[0].projectionNode;
-				Computation.stopWatch.lap();
-				//console.log("makeComputedMoveCallback...");
-				Computation.makeComputedMoveCallback(bestMove);
-			}
-		},
-		
-		nextThreadTimeout: null,
-		
-		establishNextProcessThread: function(moveProjectionList, side, initialState) {
-			Computation.nextThreadTimeout = setTimeout(
-				function() {
-					Computation.stopWatch.lap();
-					//console.log("processOneCycleMoveProjectionList...");
-					Computation.processOneCycleMoveProjectionList(moveProjectionList, side, initialState);
-				},
-				10
-			);
-		},
-		
-		shouldDoAnotherStep: function(moveProjectionList) {
-			Computation.stopWatch.lap();
-			//console.log("shouldDoAnotherStep...");
-			//console.log("Computation.cyclesPerformed: " + Computation.cyclesPerformed);
-		
-			if (Computation.cyclesPerformed >= moveProjectionList.length) {
-				return false;
-			}
-		
-			//return false;
-			var minCycles = 3;
-			var maxCycles = 10;
-			var maxTime = 10000;
-			//if (Computation.cyclesPerformed >= maxCycles) {
-			//	return false;
-			//} else if (Computation.cyclesPerformed < minCycles) {
-			//	return true;
-			//}
-		
-			if (Computation.stopWatch.getTotalTime() > maxTime) {
-				return false;
-			} else {
-				return true;
-			}
-		
-			if (moveProjectionList[0].lookaheadSteps == 2) {
-				return true;
-			}
-			return false;
-		},
-		
-		processOneCycleMoveProjectionList: function(moveProjectionList, side, initialState) {
-			//console.log("getFirstUnprocessedMoveProjection");
-			var moveProjection = Computation.getFirstUnprocessedMoveProjection(moveProjectionList);
-			Computation.stopWatch.lap();
-			//console.log("advanceProjection");
-			Computation.advanceProjection(moveProjection, side, initialState);
-			Computation.stopWatch.lap();
-			//console.log("sort");
-			moveProjectionList.sort((a, b) => b.value - a.value);
-			Computation.stopWatch.lap();
-			//console.log("determineAndExecuteNextProcessingStep");
-			Computation.cyclesPerformed++;
-			Computation.determineAndExecuteNextProcessingStep(moveProjectionList, side, initialState);
-		},
-		
-		getFirstUnprocessedMoveProjection: function(moveProjectionList) {
-			for (var i = 0; i < moveProjectionList.length; i++) {
-				var moveProjection = moveProjectionList[i];
-			
-				if (moveProjection.lookaheadSteps == 2) {
-					return moveProjection;
-				}
-			}
-			return null;
-		},
-		
-		advanceProjection: function(moveProjection, side, initialState) {
-			var opponentBestMoveProjectionNode = Computation.getOpponentBestNextMoveProjectionNode(moveProjection, side);
-		
-			if (opponentBestMoveProjectionNode == null) {
-				return;
-			}
-		
-			//console.log("getSecondLevelProjection");
-			opponentBestMoveProjectionNode.projection = Computation.getSecondLevelProjection(side, 2, opponentBestMoveProjectionNode.finalState, false);
-			//opponentBestMoveProjectionNode.projection.projectAnotherLevel(2);
-			Computation.stopWatch.lap();
-			//console.log("refresh");
-			moveProjection.projectionNode.refresh();
-
-			Computation.stopWatch.lap();
-			//console.log("getValue");
-			moveProjection.value = moveProjection.projectionNode.getValue(side, initialState);
-			moveProjection.lookaheadSteps += 2;
-		},
-		
-		getOpponentBestNextMoveProjectionNode: function(moveProjection, side) {
-			var bestValue = null;
-			var bestOppenentNextMoveProjectionNode = null;
-			var opponentProjection = moveProjection.projectionNode.projection;
-			for (var i = 0; i < opponentProjection.projectionNodeList.length; i++) {
-				var oppenentNextMoveProjectionNode = opponentProjection.projectionNodeList[i];
-			
-				var value = oppenentNextMoveProjectionNode.getValue(side.opposite, moveProjection.projectionNode.finalState);
-				if (bestValue == null || value > bestValue) {
-					bestValue = value;
-					bestOppenentNextMoveProjectionNode = oppenentNextMoveProjectionNode;
-				}
-			}
-			return bestOppenentNextMoveProjectionNode;
 		}
 	};
 	
+	class Projection {
+		constructor(side, initialState, levelCount) {
+			this.side = side;
+			this.initialState = initialState;
+			this.projectionNodeList = this.createProjectionNodeList(levelCount);
+		}
+		
+		createProjectionNodeList(levelCount) {
+			var projectionNodeList = [];
+			var legalMoves = mixArray(this.initialState.moves.getLegalMovesOfSide(this.side));
+			legalMoves.forEach(move => {
+				var newProjectionNode = new ProjectionNode(this.side, move, this.initialState, levelCount);
+				projectionNodeList.push(newProjectionNode);
+			});
+			return projectionNodeList;
+		}
+		
+		getBestMoveProjectionNode() {
+			this.sortByValue();
+			return this.projectionNodeList[0];
+		}
+		
+		sortByValue() {
+			this.projectionNodeList.sort((a, b) => (b.getValue() - a.getValue()));
+		}
+		
+		advanceProjection(totalLevelCount) {
+			this.projectionNodeList.forEach(projectionNode => {
+				projectionNode.advanceProjection(totalLevelCount);
+			});
+			this.refresh();
+		}
+		
+		getMaxDepth() { // TODO: Maybe determine this on advance of projection.
+			var maxDepth = 1;
+			this.projectionNodeList.forEach(projectionNode => {
+				maxDepth = Math.max(maxDepth, projectionNode.getMaxDepth());
+			});
+			return maxDepth;
+		}
+		
+		refresh() {
+			this.projectionNodeList.forEach(projectionNode => {
+				projectionNode.refresh();
+			});
+		}
+	}
+	
 	class ProjectionNode {
-		constructor(projection, finalState) {
-			this.projection = projection;
+		constructor(side, move, initialState, levelCount) {
+			this.side = side;
+			this.move = move;
+			this.initialState = initialState;
+			this.initialize(levelCount);
+		}
+		
+		initialize(levelCount) {
+			this.finalState = this.generateFinalStateFromMove(this.move, this.initialState);
+			this.projection = ((levelCount > 1) ? new Projection(this.side.opposite, this.finalState, levelCount - 1) : null);
+			this.evaluator = new Evaluator(this, this.side, this.move, this.initialState, this.finalState);
+		}
+		
+		generateFinalStateFromMove() {
+			var transitionState = this.initialState.clone();
+			var transitionStatePiece = transitionState.board.pieceAt(this.move.fromSquare);
+			transitionState.transition(transitionStatePiece, this.move.fromSquare, this.move.toSquare, this.initialState);
+			return transitionState;
+		}
+		
+		advanceProjection(totalLevelCount) {
+			if (totalLevelCount > 1) {
+				if (this.projection == null) {
+					this.projection = new Projection(this.side.opposite, this.finalState, totalLevelCount - 1);
+				} else {
+					this.projection.advanceProjection(totalLevelCount - 1);
+				}
+			}
+		}
+		
+		getMaxDepth() {
+			if (this.projection != null) {
+				return 1 + this.projection.getMaxDepth();
+			} else {
+				return 1;
+			}
+		}
+		
+		getValue() {
+			return this.evaluator.getValue();
+		}
+		
+		refresh() {
+			this.evaluator.refresh();
+			if (this.projection != null) {
+				this.projection.refresh();
+			}
+		}
+		
+		printInfo() {
+			console.log("#" + MoveHistory.moveCount + " " + this.move.toString() + 
+					" (" + this.getValue() + ") " + "{{" + this.valueAdjustment + "}} " + "<+" + this.nodeValue + "+> <-" + this.bestCounterMoveValue + "-> " + 
+					"[" + Computation.stopWatch.getTotalTime().toString() + " (ms)]");
+		}
+	}
+
+	// Factors to consider:
+	// - Attacking moves of side
+	// - Attacking moves of opposite side
+	// - Protection of pieces (rated differently by protecting piece value)
+	// - Position (proximity to center, pawn advancement)
+	// - Overall mobility (~ number of possible moves)
+	// - Vulerability to check (???)
+	// - Check
+	// - Checkmate (+Infinity)
+	// - Stalemate (-Infinity)
+	
+	// TODO: It seems like a pawn double advance seems safe when an en passant is possible even though it is not safe.
+	
+	class Evaluator {
+		constructor(projectionNode, side, move, initialState, finalState) {
+			this.projectionNode = projectionNode;
+			this.side = side;
+			this.move = move;
+			this.initialState = initialState;
 			this.finalState = finalState;
 			
 			this.value = null;
 		}
 		
-		getPointsForSide(side) {
-			return this.finalState.getScore().getPointsForSide(side);
-		}
-		
-		getTotalPossibilityCount() {
-			var count = 0;
-			if (this.projection == null) {
-				return 1;
-			} else if (this.projection != null) {
-				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
-					var projectionNode = this.projection.projectionNodeList[i];
-					count += projectionNode.getTotalPossibilityCount();
-				}
-			}
-			return count;
-		}
-		
 		refresh() {
 			this.value = null;
-			if (this.projection != null) {
-				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
-					var projectionNode = this.projection.projectionNodeList[i];
-					projectionNode.refresh();
-				}
-			}
 		}
 		
-		getValue(side, initialState) {
+		getValue() {
 			if (this.value != null) {
 				return this.value;
 			}
-			var valueAsLeaf = this.getValueAsLeaf(side, initialState);
-			if (this.projection == null) {
-				this.value = valueAsLeaf;
+			if (this.finalState.isSideInCheckMate(this.side.opposite)) {
+				this.value = Number.MAX_SAFE_INTEGER;
+			} else if (this.finalState.isSideInStaleMate(this.side.opposite)) {
+				this.value = Number.MIN_SAFE_INTEGER;
+			} else if (this.projectionNode.projection == null) {
+				this.value = this.getValueAsLeaf();
 			} else {
-				var greatestValue = null;
-				for (var i = 0; i < this.projection.projectionNodeList.length; i++) {
-					var projectionNode = this.projection.projectionNodeList[i];
-					var projectionNodeValue = projectionNode.getValue(side.opposite, this.finalState);
-					if (greatestValue == null || projectionNodeValue > greatestValue) {
-						greatestValue = projectionNodeValue;
-					}
-				}
-				this.value = valueAsLeaf - greatestValue;
+				this.value = this.getValueAsNode() - this.getBestCounterMoveValue();
 			}
 			return this.value;
 		}
 		
-		getValueAsLeaf(side, initialState) {
-			if (this.projection != null && this.projection.projectionNodeList.length == 0) { // Opponent will be in checkmate or stalemate.
-				if (Util.isSideInCheckMate(this.finalState, side.opposite)) {
-					return Number.MAX_SAFE_INTEGER;
-				} else {
-					return Number.MIN_SAFE_INTEGER;
-				}
-			}
-			var rawValue = this.finalState.score.getPointsForSide(side) - initialState.score.getPointsForSide(side);
-			var valueAsLeaf = rawValue + this.getValueAdjustment(side, initialState);
-			return valueAsLeaf;
+		getBestCounterMoveValue() {
+			var bestValue = null;
+			this.projectionNode.projection.projectionNodeList.forEach(projectionNode => {
+				bestValue = Math.max(bestValue, projectionNode.getValue());
+			});
+			this.projectionNode.bestCounterMoveValue = bestValue; // For logging purposes.
+			return bestValue;
 		}
 		
-		getValueAdjustment(side, initialState) {
+		getValueAsNode() {
+			var simplePointValue = this.finalState.score.getPointsForSide(this.side) - this.initialState.score.getPointsForSide(this.side);
+			simplePointValue += this.initialState.score.getPointsForSide(this.side.opposite) - this.finalState.score.getPointsForSide(this.side.opposite); // for promotion
+			//if (this.finalState.score.getPointsForSide(this.side.opposite) != this.initialState.score.getPointsForSide(this.side.opposite)) {
+			//	alert(this.initialState.score.getPointsForSide(this.side.opposite) - this.finalState.score.getPointsForSide(this.side.opposite));
+			//}
+			this.projectionNode.nodeValue = simplePointValue; // For logging purposes.
+			return simplePointValue + this.getValueAdjustment();
+		}
+		
+		getValueAsLeaf() {
+			var simplePointValue = this.getMoveIntoSquareValue();
+			//var simplePointValue = (this.move.resultsInCapture() ? this.getAttackValue() : 0);
+			//var simplePointValue = (this.move.resultsInCapture() ? this.getAttackValue() : (this.isMoveIntoAttackedSquare() ? Math.min(0, this.getMoveIntoAttackedSquareValue()) : 0)); // Experimental
+			this.projectionNode.nodeValue = simplePointValue; // For logging purposes.
+			return simplePointValue + this.getValueAdjustment();
+		}
+		
+		
+		// Experimental
+		
+		// The value of a promoting move does present a problem as the opponent may be encouraged to sacrifice a piece in order to check the king since this will
+		// delay the promotion and thus seems more valuable.
+		
+		getMoveIntoSquareValue() {
+			var value = 0;
+			if (this.move.resultsInCapture()) {
+				value += this.getAttackValue();
+			} else if (this.isMoveIntoAttackedSquare()) {
+				value += this.getMoveIntoAttackedSquareValue();
+			}
+			if (this.move.isPromotion) {
+				value += 8; // TODO: Improve (accomodate other promotion pieces).
+			}
+			return value;
+		}
+		
+		isMoveIntoAttackedSquare() {
+			return this.finalState.moves.getAttackingSquaresOfSide(this.side.opposite).includes(this.move.toSquare);
+		}
+		
+		// TODO: What about king?
+		getMoveIntoAttackedSquareValue() {
+			var attackedPiece = this.finalState.board.pieceAt(this.move.toSquare);
+			var protectingPieceList = this.finalState.moves.getProtectingMovesOfSide(this.side)
+					.filter(protectingMove => (protectingMove.affectedPiece == attackedPiece))
+					.map(protectingMove => protectingMove.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			var attackingPieceList = this.finalState.moves.getAttackingMovesOfSide(this.side.opposite)
+					.filter(attackingMove => (attackingMove.affectedPiece == attackedPiece))
+					.map(attackingMove => attackingMove.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			return Math.min(0, (-1) * this.getExchangeValue(attackedPiece, protectingPieceList, attackingPieceList));
+		}
+		
+		// TODO: Should consolidate methods.
+		getFutureAttackValue(side, move, state) {
+			var attackedPiece = move.affectedPiece;
+			var protectingPieceList = state.moves.getRawProtectingMovesOfSide(side.opposite) // raw or not?
+					.filter(protectingMove => (protectingMove.affectedPiece == attackedPiece))
+					.map(protectingMove => protectingMove.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			var attackingPieceList = [move.piece];
+			var subsequentAttackingPieceList = state.moves.getRawAttackingMovesOfSide(side) // raw or not?
+					.filter(attackingMove => ((attackingMove.piece != move.piece) && (attackingMove.affectedPiece == attackedPiece)))
+					.map(attackingMove => attackingMove.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			attackingPieceList = attackingPieceList.concat(subsequentAttackingPieceList);
+			return this.getExchangeValue(attackedPiece, protectingPieceList, attackingPieceList);
+		}
+		// Experimental
+		
+		
+		getAttackValue() {
+			var attackedPiece = this.move.affectedPiece;
+			var protectingPieceList = this.initialState.moves.getProtectingMovesOfSide(this.side.opposite)
+					.filter(move => (move.affectedPiece == attackedPiece))
+					.map(move => move.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			var attackingPieceList = [this.move.piece];
+			var subsequentAttackingPieceList = this.initialState.moves.getAttackingMovesOfSide(this.side)
+					.filter(move => ((move.piece != this.move.piece) && (move.affectedPiece == attackedPiece)))
+					.map(move => move.piece)
+					.sort((a, b) => (a.points - b.points)); // TODO: Include shadow moves.
+			attackingPieceList = attackingPieceList.concat(subsequentAttackingPieceList);
+			return this.getExchangeValue(attackedPiece, protectingPieceList, attackingPieceList);
+		}
+		
+		// TODO: What about king?
+		getExchangeValue(attackedPiece, protectingPieceList, attackingPieceList) {
+			if ((protectingPieceList.length == 0) || ((attackingPieceList.length > 1) && (protectingPieceList.length == 1) && (protectingPieceList[0] instanceof King))) { // ???
+			//if ((protectingPieceList.length == 0) || ((protectingPieceList.length == 1) && (protectingPieceList[0] instanceof King))) { // ???
+			//if (protectingPieceList.length == 0) {
+				if (attackedPiece == null) { /// ???
+					return 0;
+				}
+				return attackedPiece.points;
+			}
+			var counterAttackValue = this.getExchangeValue(attackingPieceList[0], attackingPieceList.slice(1), protectingPieceList);
+			if (counterAttackValue > 0) {
+				return (attackedPiece.points - counterAttackValue);
+			} else {
+				return attackedPiece.points;
+			}
+		}
+		
+		getValueAdjustment() {
 			var adjustment = 0;
 			
 			var movingPiece = this.finalState.move.piece;
-			var movingPieceInitial = initialState.board.pieceAt(this.finalState.move.fromSquare);
+			var movingPieceInitial = this.initialState.board.pieceAt(this.finalState.move.fromSquare);
 			
-			var x = Position.from(this.finalState.move.fromSquare).getColumn();
-			var y = Position.from(this.finalState.move.fromSquare).getRow();
-			var yHome = (side == Side.Light ? y : 7 - y);
+			var x0 = Position.from(this.finalState.move.fromSquare).getColumn(); // Initial (0-7)
+			var y0 = Position.from(this.finalState.move.fromSquare).getRow(); // Initial (0-7)
+			var x1 = Position.from(this.finalState.move.toSquare).getColumn(); // Final (0-7)
+			var y1 = Position.from(this.finalState.move.toSquare).getRow(); // Final (0-7)
 			
-			var moveXDelta = Math.abs(Position.from(this.finalState.move.fromSquare).getColumn() - Position.from(this.finalState.move.toSquare).getColumn());
-			var moveYDelta = Math.abs(Position.from(this.finalState.move.fromSquare).getRow() - Position.from(this.finalState.move.toSquare).getRow());
+			var y0Relative = (this.side == Side.Light ? y0 : 7 - y0);
+			var y1Relative = (this.side == Side.Light ? y1 : 7 - y1);
+			
+			var yHomeRow = (this.side == Side.Light ? 0 : 7);
+			var yHomePawnRow = (this.side == Side.Light ? 1 : 6);
+			
+			var moveXDelta = Math.abs(x1 - x0);
+			var moveYDelta = Math.abs(y1 - y0);
+			
+			// Opening Game - Middle Game - End Game
+			
+			
+			// TODO: Improve.
+			var roundNumber = MoveHistory.getRoundNumber();
+			var gamePhase = this.initialState.gamePhase.getGamePhaseOfSide(this.side); // TODO: Should game phase be for both sides or specific side?
+	
+			
+			// TODO: If move puts oppenent's king in check and also attacks a piece of greater value or an unprotect piece (etc), move should have very high adjustment! (What else?)
+			// TODO: Also if move puts oppenent's king in check and king blocks attack of piece (which is of greater value or an unprotect piece (etc)), move should have very high adjustment! (What else?)
+			// Encourage putting opponent's king in check.
+			if (gamePhase != GamePhase.Opening && this.finalState.isSideInCheck(this.side.opposite)) {
+				adjustment += 0.1;
+			} 
+			
+			// TODO: What to do for discovered attacks where there is a double attack but not from single piece?
+			
+			
+			var profitableAttackCount = 0;
+			var finalStatePiece = this.finalState.board.pieceAt(this.move.toSquare);
+			if (finalStatePiece.getAttackingMoves().length >= 1) { // > 1 for double attack only | >= 1 for any possible attack (including check)
+				if (this.getMoveIntoSquareValue() >= 0) {
+				//if (!this.finalState.moves.getAttackingSquaresOfSide(this.side.opposite).includes(this.move.toSquare)) { // TODO: Not sure that this is working correctly! / TODO: Make function. // Or positive exchange?
+					finalStatePiece.getAttackingMoves().forEach(atackingMove => {
+						if (atackingMove.affectedPiece instanceof King) {
+							profitableAttackCount++;
+							//console.log("(Check)   " + atackingMove.toString());
+						} else if (atackingMove.affectedPiece.points > this.move.piece.points) { // Attacked piece is more valuable than attacking piece.
+							profitableAttackCount++;
+							//console.log("(Attacked piece is more valuable than attacking piece)   " + atackingMove.toString());
+						} else if (this.finalState.moves.getRawProtectingMovesOfSide(this.side.opposite).filter(protectingMove => protectingMove.affectedPiece == atackingMove.affectedPiece).length == 0) { // Attacked piece is not protected.  // raw or not? // This is not really necessary since it is covered by (Positive exchange)
+							profitableAttackCount++;
+							//console.log("(Piece not protected)   " + atackingMove.toString());
+						} else if (this.getFutureAttackValue(this.side, atackingMove, this.finalState) > 0) { // Positive exchange // TODO: Verify
+							// This may not always result in the optimal outcome since the other attacked piece may be used to block check, or something else could disrupt the outcome.
+							profitableAttackCount++;
+							//console.log("(Positive exchange)   " + atackingMove.toString());
+						}
+					});
+					
+				}
+			}
+			if (profitableAttackCount >= 2) {
+				if (this.finalState.isSideInCheck(this.side.opposite)) {
+					adjustment += 0.8;
+					//console.log("[Checking double attack]");
+				} else {
+					adjustment += 0.7;
+					//console.log("[Double attack]");
+				}
+			} else if (profitableAttackCount == 1) {
+				adjustment += 0.2;
+				//console.log("[Single attack]");
+			}
+			
+			
+			/*
+			if (this.finalState.isSideInCheck(this.side.opposite)) {
+				
+				// TODO: Improve.
+				// TODO: Need to use finalState for getting other attacking moves of piece besides checking move!
+				//this.move.piece.getAttackingMoves()
+				var isCheckingAndProfitableDoubleAttack = false;
+				var finalStatePiece = this.finalState.board.pieceAt(this.move.toSquare);
+				if (finalStatePiece.getAttackingMoves().length > 1) {
+					if (!this.finalState.moves.getAttackingSquaresOfSide(this.side.opposite).includes(this.move.toSquare)) { // TODO: Not sure that this is working correctly! / TODO: Make function. // Or positive exchange?
+						var checkingMove = finalStatePiece.getAttackingMoves().filter(move => (move.affectedPiece instanceof King))[0];
+						var otherAttackingMoves = finalStatePiece.getAttackingMoves().filter(move => (move != checkingMove));
+						otherAttackingMoves.forEach(otherAttackingMove => {
+							if (otherAttackingMove.affectedPiece.points > this.move.piece.points) { // Attacked piece is move valuable than attacking piece.
+								isCheckingAndProfitableDoubleAttack = true;
+								console.log("isCheckingAndProfitableDoubleAttack = true   " + otherAttackingMove.toString());
+							} else if (this.finalState.moves.getRawProtectingMovesOfSide(this.side.opposite).filter(protectingMove => protectingMove.affectedPiece == otherAttackingMove.affectedPiece).length == 0) { // Attacked piece is not protected.  // raw or not?
+								isCheckingAndProfitableDoubleAttack = true;
+								console.log("isCheckingAndProfitableDoubleAttack = true (piece not protected)   " + otherAttackingMove.toString());
+							} else if (this.getFutureAttackValue(this.side, otherAttackingMove, this.finalState) > 0) { // Positive exchange // TODO: Verify
+								// This may not always result in the optimal outcome since the other attacked piece may be used to block check, or something else could disrupt the outcome.
+								isCheckingAndProfitableDoubleAttack = true;
+								console.log("isCheckingAndProfitableDoubleAttack = true (positive exchange)   " + otherAttackingMove.toString());
+							}
+						});
+						
+					}
+				}
+				if (isCheckingAndProfitableDoubleAttack) {
+					adjustment += 0.8;
+				}
+			}
+			*/
+			
+			// TODO; Also consider non-checking scenarios where the attacked piece is more valuable that the attacking piece or unprotected etc
+	
+			// Avoid moving same piece twice in opening game.
+			if (gamePhase == GamePhase.Opening && !movingPieceInitial.hasNeverMoved) {
+				adjustment += -0.25;
+			}
 			
 			if (movingPiece instanceof Pawn) {
 				var maxPawnRadiusAdjustment = 0.2;
-				
-				
-				
-				if (yHome <= 4 && (x <= 4 || x == 5 && moveYDelta == 1)) {
-					var xDist = 3.5 - x;
-					var yDist = 1.5 - yHome;
+				 
+				if (y1Relative <= 4 && x0 <= 4) {
+					var xDist = 3.5 - x0;
+					var yDist = 1.5 - y0Relative;
 					var dist = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 				
 					var coefficient = (3.8 - dist) / 3.1;
 					coefficient = normalizeNumberToValueBetween0and1(coefficient);
 					
-					
-					if (moveYDelta < 2 && Math.random() < 0.5) {
-						console.log("not 2 move so ---");
-						coefficient *= 0.9;
+					if (moveYDelta < 2 && Math.random() < 0.9) {
+						coefficient *= 0.5;
 					}
 					
 					var pawnRadiusAdjustment = coefficient * maxPawnRadiusAdjustment;
-					
-					console.log("pawnRadiusAdjustment: " + pawnRadiusAdjustment);
 				
 					adjustment += pawnRadiusAdjustment;
 				}
-			} else if (movingPiece instanceof Knight || movingPiece instanceof Bishop) {
-				if (movingPieceInitial.hasNeverMoved) {
-					if (x >= 5) { // King side.
-						if (Math.random() < 0.5) {
-							adjustment += 0.17 + 0.3 * Math.random();
-						}
-					} else {
-						adjustment += 0.1;
-					}
-					console.log("knight/bishop adjustment: " + adjustment);
+				
+				// Encourage pawn advancement in end game.
+				if (gamePhase == GamePhase.End) {
+					adjustment += 0.25;
 				}
 				
-			} else if (movingPiece instanceof King) {
-				if (movingPieceInitial.hasNeverMoved) {
-					adjustment += -0.05;
+				// Discourage King-side pawn movement in opening game.
+				if (gamePhase == GamePhase.Opening && x0 >= 5) {
 					
-					if (moveXDelta == 2) { // Castle
-						adjustment += 0.75;
+					if (x0 == 6 && movingPieceInitial.hasNeverMoved && moveYDelta == 1) { // Coordinate fortress setup.
+						var specialAdjustmentMade = false;
+						var probePosition = Position.fromPoint(5, yHomeRow);
+						var probePiece = this.initialState.board.pieceAt(probePosition.square);
+						var bishopHasNeverMoved = ((probePiece instanceof Bishop) && probePiece.hasNeverMoved);
+						if (bishopHasNeverMoved && roundNumber >= 3) {
+							var probePosition2 = Position.fromPoint(4, yHomePawnRow);
+							var probePiece2 = this.initialState.board.pieceAt(probePosition2.square);
+							var isAnotherOptionForBishop = (probePiece2 == null);
+							if (isAnotherOptionForBishop && Math.random() < 0.2) {
+								adjustment += 0.4;
+								specialAdjustmentMade = true;
+							} else if (!isAnotherOptionForBishop && Math.random() < 0.4) { // was 0.4
+								adjustment += 0.7; // was 0.7
+								specialAdjustmentMade = true;
+							} 
+						}
+						if (!specialAdjustmentMade) {
+							adjustment += -0.5;
+						}
+					} else {
+						adjustment += -0.5;
 					}
 				}
-			}	
-			// TODO: Discorage king-side rook from moving before castle.
+				
+				// Discourage stacking pawns.
+				if (x0 != x1) {
+					var friendlyPawnOnTargetColumn = false;
+					for (var yP = 1; yP <= 6; yP++) {
+						var probePosition = Position.fromPoint(x1, yP);
+						var probePiece = this.initialState.board.pieceAt(probePosition.square);
+						if (probePiece != null && probePiece instanceof Pawn && probePiece.side == this.side) {
+							friendlyPawnOnTargetColumn = true;
+						}
+					}
+					if (friendlyPawnOnTargetColumn) {
+						adjustment += -0.2;
+					}
+				}
+				
+			} else if (movingPiece instanceof Knight || movingPiece instanceof Bishop) {
+				if (movingPieceInitial.hasNeverMoved) {
+					var isMoveDiscouraged = false;
+					
+					// Discourage knight moving to edge as first move.
+					if (movingPiece instanceof Knight) {
+						if (x1 == 0 || x1 == 7) {
+							adjustment += -0.35; // TODO: What about very high adjustment already established by wanting to move king side piece?
+							isMoveDiscouraged = true;
+						}
+					}
+					
+					// Avoid blocking the advancement of two middle pawns.
+					if (movingPiece instanceof Bishop) {
+						if (y1Relative == 2 && (x1 == 3 || x1 == 4)) {
+							var wouldBlockPawnAdvancement = false;
+							var probePosition = Position.fromPoint(x1, yHomePawnRow);
+							var probePiece = this.initialState.board.pieceAt(probePosition.square);
+							if (probePiece != null && probePiece instanceof Pawn) {
+								wouldBlockPawnAdvancement = true;
+							}
+							if (wouldBlockPawnAdvancement) {
+								adjustment += -0.35; // TODO: What about very high adjustment already established by wanting to move king side piece?
+								isMoveDiscouraged = true;
+							}
+						}
+					}
+					
+					if (!isMoveDiscouraged) {
+						if (x0 == 5 || x0 == 6) { // King side.
+							if (Math.random() < 0.2 || (roundNumber >= 1 && Math.random() < 0.35) || (roundNumber >= 2 && Math.random() < 0.5)) {
+								adjustment += 0.17 + 0.3 * Math.random();
+							}
+						} else {
+							adjustment += 0.15;
+						}
+					}
+					
+					// Encourage (strongly) bishop to move into position behind king-side knight's pawn if it has been moved.
+					if (movingPiece instanceof Bishop) {
+						if (x1 == 6 && y1 == yHomePawnRow) {
+							adjustment += 0.75;
+						}
+					}
+					
+				} else {
+					// Discourage bishop and knight from moving back to home row during opening game.
+					if (gamePhase == GamePhase.Opening && y1 == yHomeRow) {
+						adjustment += -0.35;
+					}
+				}
+			} else if (movingPiece instanceof Rook) {
+				if (movingPieceInitial.hasNeverMoved) {
+					if (x0 == 7 && gamePhase == GamePhase.Opening) { // Discourage king-side rook from moving during opening game.
+						adjustment += -0.4;
+					}
+				}
+			} else if (movingPiece instanceof Queen) {
+				if (movingPieceInitial.hasNeverMoved) {
+					if (y1 != yHomeRow) {
+						if (roundNumber >= 8) {
+							adjustment += 0.25;
+						}
+					} else {
+						adjustment += -0.1;
+					}
+				}
+			} else if (movingPiece instanceof King) {
+				if (movingPieceInitial.hasNeverMoved) {
+					if (moveXDelta == 2) { // Castle
+						adjustment += 0.75;
+					} else {
+						adjustment += -0.5;
+					}
+				} else {
+					if (gamePhase != GamePhase.End) {
+						if (y1 == yHomeRow) { // Avoid moving king (after first move) until endgame.
+							adjustment += -0.5;
+						} else { // Avoid (strongly) moving king from home row until endgame.
+							adjustment += -0.8;
+						}
+					}
+				}
+			}
+			
+			if (adjustment > 0.9) {
+				adjustment = 0.9;
+			} else if (adjustment < -0.9) {
+				adjustment = -0.9;
+			}
+			
+			adjustment = adjustment / 2; // TODO: Rethink this.
+			
+			this.projectionNode.valueAdjustment = adjustment; // TEMP! For logging purposes.
 			
 			return adjustment;
 		}
-	}
-	
-	class Projection {
-		constructor(side, levelCount, initialState) {
-			//console.log("levelCount: " + levelCount);
-			this.side = side;
-			this.initialState = initialState;
-			this.projectionNodeList = this.getNextLevel(side, levelCount, initialState);
-		}
 		
-		refresh() {
-			for (var i = 0; i < this.projectionNodeList.length; i++) {
-				var projectionNode = this.projectionNodeList[i];
-				projectionNode.refresh();
-			}
-		}
-		
-		getTotalPossibilityCount() {
-			var count = 0;
-			for (var i = 0; i < this.projectionNodeList.length; i++) {
-				var projectionNode = this.projectionNodeList[i];
-				count += projectionNode.getTotalPossibilityCount();
-			}
-			return count;
-		}
-		
-		getNextLevel(side, levelCount, initialState) {
-			var projectionList = [];
-			
-			var pieces = initialState.pieces.getAllOfSide(side);
-			pieces = mixArray(pieces);
-		
-			for (var i = 0; i < pieces.length; i++) {
-				var piece = pieces[i];
-				var legalMovesOfPiece = piece.getLegalMoves();
-				legalMovesOfPiece = mixArray(legalMovesOfPiece);
-				for (var j = 0; j < legalMovesOfPiece.length; j++) {
-					var legalMove = legalMovesOfPiece[j];
-				
-					var fromSquare = piece.square;
-					var toSquare = legalMove;
-				
-					var transitionState = initialState.clone();
-					var transitionStatePiece = transitionState.board.pieceAt(piece.square);
-			
-					transitionState.transition(transitionStatePiece, fromSquare, toSquare, initialState);
-			
-					var finalState = transitionState;
-					var move = finalState.move;
-					
-					var nextLevelProjection = null;
-					if (levelCount > 1) {
-						nextLevelProjection = new Projection(side.opposite, levelCount - 1, finalState);
-					}	
-					var nextLevelProjectionNode = new ProjectionNode(nextLevelProjection, finalState);
-					
-					projectionList.push(nextLevelProjectionNode);
-				
-					finalState.move.score = finalState.score.getPointsForSide(transitionStatePiece.side);
+		getStrategyAdjustedValue(value) {
+			var killCoefficient = 0; // 1 should prefer kill and -1 should prefer no kill. 0 has no effect.
+			if (this.move.resultsInCapture()) {
+				var adjustedValue = value;
+				if (killCoefficient > 0) {
+					adjustedValue = Math.floor(value) + 0.99999 * killCoefficient;
+				} else if (killCoefficient < 0) {
+					adjustedValue = Math.ceil(value) + 0.99999 * killCoefficient;
 				}
+				return adjustedValue;
 			}
-		
-			return projectionList;
-		}
-		
-		projectAnotherLevel(totalLevelCount) {
-			for (var i = 0; i < this.projectionNodeList.length; i++) {
-				var projectionNode = this.projectionNodeList[i];
-				this.projectAnotherLevelRecursive(this.side.opposite, projectionNode, totalLevelCount - 1);
-			}	
-		}
-		
-		projectAnotherLevelRecursive(side, projectionNode, totalLevelCount) {
-			if (projectionNode.projection == null) {
-				var newProjection = new Projection(side, totalLevelCount, projectionNode.finalState);
-				projectionNode.projection = newProjection;
-			} else if (totalLevelCount > 1) {
-				for (var i = 0; i < projectionNode.projection.projectionNodeList.length; i++) {
-					var nextLevelProjectionNode = projectionNode.projection.projectionNodeList[i];
-					this.projectAnotherLevelRecursive(side.opposite, nextLevelProjectionNode, totalLevelCount - 1);
-				}
-			}
+			return value;
 		}
 	}
 	
-	class MoveProjection {
-		constructor(projectionNode, value, lookaheadSteps) {
+	/************************* Tactics **************************/
+	
+	class Tactics {
+		constructor(projectionNode, side, move, initialState, finalState) {
 			this.projectionNode = projectionNode;
-			this.value = value;
-			this.lookaheadSteps = lookaheadSteps;
+			this.side = side;
+			this.move = move;
+			this.initialState = initialState;
+			this.finalState = finalState;
+		}
+		
+		// Fork, Skew, Pin, Double Attack, Discovered Attack
+		
+
+		// Fork:
+		// if attacking piece is not in (/moving into) square attacked by opponent (or at least has protection which ensures a gainful exchange if attacked)
+		// and attacking piece attacks two opponent pieces where (one of the following applies):
+		// - one is king (forcing move) and the other is more valuable than the attacking piece {ex: knight attacking king and (queen or rook)}
+		// - one is king (forcing move) and the other is unprotected(/unprotectable/under pressure and exchange would be gainful) 
+		// - both pieces are unprotected(/unprotectable/under pressure and exchange would be gainful) 
+		// - both pieces are more valuable than the attacking piece {ex: knight attacking two rooks}
+		
+		isFork(onlyReturnForced) {
+			onlyReturnForced = onlyReturnForced || false;
+			var isForced = false;
+			//if (this.finalState.isSideInCheck(this.side.opposite))
+			//var attackedSquares = this.finalState.moves.getAttackingSquaresOfSide(this.side.opposite);
+			if (!this.projectionNode.evaluator.isMoveIntoAttackedSquare() || (this.projectionNode.evaluator.getMoveIntoAttackedSquareValue() > 0)) { // Is safe to move into setup square.
+			//if (!attackedSquares.includes(this.move.toSquare)) {
+				var piece = this.finalState.board.pieceAt(this.move.toSquare);
+				var attackingMoves = this.finalState.getAttackingMovesOfPiece(piece);
+				var attackedPieces = attackingMoves.map(move => move.affectedPiece);
+				var qualifiedPieces = 0;
+				attackedPieces.forEach(attackedPiece => {
+					if (attackedPiece instanceof King) {
+						qualifiedPieces++;
+						isForced = true;
+					} else if (attackedPiece.points > piece.points) {
+						qualifiedPieces++;
+					} else if (this.finalState.moves.getProtectingMovesOfSide(this.side.opposite).filter(move => move.affectedPiece == attackedPiece).length == 0) { // Unprotected.
+						qualifiedPieces++;
+					}
+				});
+				if (qualifiedPieces >= 2) {
+					if (onlyReturnForced) {
+						return isForced;
+					} else {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 	
+	/************************* Move History **************************/
+	
+	var MoveHistory = {
+		stack: [],
+		moveCount: 0,
+		registerMove: function(piece, fromSquare, toSquare, moveType, affectedPiece, initialState, finalState) {
+			MoveHistory.stack.push(new Move(piece, fromSquare, toSquare, moveType, affectedPiece, initialState, finalState));
+			//MoveHistory.stack.push(new Move(piece, fromSquare, toSquare, initialState, finalState)); // new Move(piece, fromSquare, toSquare, moveType, affectedPiece, initialState, finalState)
+			MoveHistory.moveCount++;
+		},
+		getRoundNumber: function() {
+			return 1 + Math.floor(MoveHistory.moveCount / 2);
+		},
+		getLastMove: function() {
+			return MoveHistory.stack[MoveHistory.stack.length - 1];
+		},
+		clear: function() {
+			MoveHistory.stack = [];
+		}
+	};
+	
+	/***************************************************************** Util *****************************************************************/
+
+	var Util = {
+		
+		isClearBetweenTwoPieces: function(piece1, piece2) {
+			return (Util.getPiecesBetweenTwoPieces(piece1, piece2).length == 0);
+		},
+		
+		getPiecesBetweenTwoPieces: function(piece1, piece2) { // TODO: Use Util.getSquaresBetweenTwoPieces(piece1, piece2)
+			if (!Util.arePiecesOnSameOrthogonal(piece1, piece2) && !Util.arePiecesOnSameDiagonal(piece1, piece2)) {
+				throw "Pieces are not on same line.";
+			}
+			var piecesBetweenTwoPieces = [];
+			
+			var xDiff = piece2.getPosition().getColumn() - piece1.getPosition().getColumn();
+			var xDirection = (xDiff != 0 ? (xDiff / Math.abs(xDiff)) : 0);
+			var yDiff = piece2.getPosition().getRow() - piece1.getPosition().getRow();
+			var yDirection = (yDiff != 0 ? (yDiff / Math.abs(yDiff)) : 0);
+			
+			var xProbe = piece1.getPosition().getColumn() + xDirection;
+			var yProbe = piece1.getPosition().getRow() + yDirection;
+			while (!((xProbe == piece2.getPosition().getColumn()) && (yProbe == piece2.getPosition().getRow()))) {
+				var probePosition = Position.fromPoint(xProbe, yProbe);
+				var probePiece = piece1.state.board.pieceAt(probePosition.square);
+				if (probePiece != null) {
+					piecesBetweenTwoPieces.push(probePiece);
+				}
+				xProbe += xDirection;
+				yProbe += yDirection;
+			}
+			return piecesBetweenTwoPieces;
+		},
+		
+		getSquaresBetweenTwoPieces: function(piece1, piece2) {
+			if (!Util.arePiecesOnSameOrthogonal(piece1, piece2) && !Util.arePiecesOnSameDiagonal(piece1, piece2)) {
+				throw "Pieces are not on same line.";
+			}
+			var squaresBetweenTwoPieces = [];
+			
+			var xDiff = piece2.getPosition().getColumn() - piece1.getPosition().getColumn();
+			var xDirection = (xDiff != 0 ? (xDiff / Math.abs(xDiff)) : 0);
+			var yDiff = piece2.getPosition().getRow() - piece1.getPosition().getRow();
+			var yDirection = (yDiff != 0 ? (yDiff / Math.abs(yDiff)) : 0);
+			
+			var xProbe = piece1.getPosition().getColumn() + xDirection;
+			var yProbe = piece1.getPosition().getRow() + yDirection;
+			while (!((xProbe == piece2.getPosition().getColumn()) && (yProbe == piece2.getPosition().getRow()))) {
+				var probePosition = Position.fromPoint(xProbe, yProbe);
+				squaresBetweenTwoPieces.push(probePosition.square);
+				xProbe += xDirection;
+				yProbe += yDirection;
+			}
+			return squaresBetweenTwoPieces;
+		},
+		
+		arePiecesOnSameOrthogonal: function(piece1, piece2) {
+			return ((piece1.getPosition().getColumn() == piece2.getPosition().getColumn()) || (piece1.getPosition().getRow() == piece2.getPosition().getRow()));
+		},
+		
+		arePiecesOnSameDiagonal: function(piece1, piece2) {
+			return (Math.abs(piece2.getPosition().getColumn() - piece1.getPosition().getColumn()) == Math.abs(piece2.getPosition().getRow() - piece1.getPosition().getRow()));
+		},
+		
+		getDirectionFromPieceToPiece: function(piece1, piece2) {
+			if (!Util.arePiecesOnSameOrthogonal(piece1, piece2) && !Util.arePiecesOnSameDiagonal(piece1, piece2)) {
+				throw "Pieces are not on same line.";
+			}
+			var xDiff = piece2.getPosition().getColumn() - piece1.getPosition().getColumn();
+			var xDirection = (xDiff != 0 ? (xDiff / Math.abs(xDiff)) : 0);
+			var yDiff = piece2.getPosition().getRow() - piece1.getPosition().getRow();
+			var yDirection = (yDiff != 0 ? (yDiff / Math.abs(yDiff)) : 0);
+			return {xDirection: xDirection, yDirection: yDirection};
+		},
+		
+		isDirectionOrthogonal: function(xDirection, yDirection) {
+			return ((xDirection == 0) || (yDirection == 0));
+		},
+		
+		isDirectionDiagonal: function(xDirection, yDirection) {
+			return ((xDirection != 0) && (yDirection != 0));
+		}
+	}
 	
 	/************************* Utility **************************/
 	
@@ -2039,6 +3280,9 @@
 	}
 	
 	function removeFromArray(array, element) {
+		if (array == null) {
+			return null;
+		}
 		var index = array.indexOf(element);
 		if (index >= 0) {
 			return array.splice(index, 1);
@@ -2047,22 +3291,22 @@
 	}
 	
 	function mixArray(array) {
-	  var currentIndex = array.length, temporaryValue, randomIndex;
+		var currentIndex = array.length, temporaryValue, randomIndex;
 
-	  // While there remain elements to shuffle...
-	  while (0 !== currentIndex) {
+		// While there remain elements to shuffle...
+		while (0 !== currentIndex) {
 
-	    // Pick a remaining element...
-	    randomIndex = Math.floor(Math.random() * currentIndex);
-	    currentIndex -= 1;
+			// Pick a remaining element...
+			randomIndex = Math.floor(Math.random() * currentIndex);
+			currentIndex -= 1;
 
-	    // And swap it with the current element.
-	    temporaryValue = array[currentIndex];
-	    array[currentIndex] = array[randomIndex];
-	    array[randomIndex] = temporaryValue;
-	  }
+			// And swap it with the current element.
+			temporaryValue = array[currentIndex];
+			array[currentIndex] = array[randomIndex];
+			array[randomIndex] = temporaryValue;
+		}
 
-	  return array;
+		return array;
 	}
 	
 </script>
@@ -2159,12 +3403,13 @@
 				<div class="button darkAutoPlayTurnButton selected"><span>&#9854;</span></div>
 				<div class="editBoardPaneContainer collapsed">
 					<div class="button openEditModeButton"><span>&#916;</span></div>
-					<div class="editBoardPane">
-						<div class="button pawnAddButton"><span>&#9823;</span></div>
-						<div class="button knightAddButton"><span>&#9822;</span></div>
-						<div class="button bishopAddButton"><span>&#9821;</span></div>
-						<div class="button rookAddButton"><span>&#9820;</span></div>
-						<div class="button queenAddButton"><span>&#9819;</span></div>
+					<div class="editBoardPane" data-side="Dark">
+						<div class="button pieceAddSideButton"><div class="a"><div class="b"></div><div class="c"></div></div></div>
+						<div class="button pieceAddButton pawnAddButton"><span>&#9823;</span></div>
+						<div class="button pieceAddButton knightAddButton"><span>&#9822;</span></div>
+						<div class="button pieceAddButton bishopAddButton"><span>&#9821;</span></div>
+						<div class="button pieceAddButton rookAddButton"><span>&#9820;</span></div>
+						<div class="button pieceAddButton queenAddButton"><span>&#9819;</span></div>
 						<div class="button pieceMoveButton"><span class="horizontalArrows">&#8596;</span><span class="verticalArrows">&#8597;</span></div>
 						<div class="button pieceDeleteButton"><span>&#8855;</span></div>
 						<div class="button closeEditModeButton"><span>-</span></div>
